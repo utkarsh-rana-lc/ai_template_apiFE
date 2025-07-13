@@ -1,4 +1,4 @@
-const { OpenAI } = require('openai');
+import OpenAI from 'openai';
 
 function buildPrompt(category, goal, tone, language, variables) {
   const variableDefinitions = variables.map((v, i) => `- {{${i+1}}} → ${v}`).join('\n');
@@ -28,23 +28,22 @@ Rules:
 Output only the message body. No explanation or formatting.`;
 }
 
-exports.handler = async (event, context) => {
+export default async (request, context) => {
   // Handle CORS preflight
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
+  if (request.method === 'OPTIONS') {
+    return new Response('', {
+      status: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
-      },
-      body: ''
-    };
+      }
+    });
   }
 
   try {
     // Parse request body
-    const body = JSON.parse(event.body);
+    const body = await request.json();
     
     // Initialize OpenAI client
     const openai = new OpenAI({
@@ -66,29 +65,27 @@ exports.handler = async (event, context) => {
       messages: [{ role: "user", content: prompt }]
     });
     
-    return {
-      statusCode: 200,
+    return new Response(JSON.stringify({
+      content: response.choices[0].message.content
+    }), {
+      status: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        content: response.choices[0].message.content
-      })
-    };
+      }
+    });
     
   } catch (error) {
     console.error('Error:', error);
-    return {
-      statusCode: 500,
+    return new Response(JSON.stringify({
+      error: error.message,
+      content: 'Error generating template. Please try again.'
+    }), {
+      status: 500,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        error: error.message,
-        content: 'Error generating template. Please try again.'
-      })
-    };
+      }
+    });
   }
 };
