@@ -1,253 +1,115 @@
 import OpenAI from 'openai';
 
 function buildPrompt(category, goal, tone, language, variables) {
-  const variableDefinitions = variables.map((v, i) => `- {{${i+1}}} → ${v}`).join('\n');
-  const placeholderList = variables.map((_, i) => `{{${i+1}}}`).join(', ');
+  const variableDefinitions = variables.map((v, i) => `{{${i+1}}} = ${v}`).join(', ');
+  
+  // Get specific examples for the use case
+  const examples = getExamplesForUseCase(goal, variables);
+  const emojiRequirements = getEmojiRequirements(goal);
+  
+  return `You are a creative WhatsApp marketing expert who writes engaging, emoji-rich messages that customers love to receive.
 
-  // Enhanced context-specific prompts based on use case
-  const contextualGuidance = getContextualGuidance(goal, category);
-  const toneGuidance = getToneGuidance(tone);
-  const languageGuidance = getLanguageGuidance(language);
-  const emojiGuidance = getEmojiGuidance(goal, category);
+TASK: Write a ${goal} message in ${language} with a ${tone} tone.
 
-  return `You are an expert WhatsApp Business API template writer with deep knowledge of Meta's messaging policies and modern e-commerce communication trends.
+VARIABLES: ${variableDefinitions}
 
-CONTEXT:
-- Template Category: ${category}
-- Use Case: ${goal}
-- Communication Tone: ${tone}
-- Language: ${language}
-- Target: ${contextualGuidance.audience}
+${emojiRequirements}
 
-${contextualGuidance.context}
+WRITING STYLE RULES:
+- Write like a friendly human, NOT a robot
+- Use natural, conversational language
+- Include contractions (we'll, you're, don't, it's)
+- Vary sentence length for natural flow
+- Sound excited and genuine
+- Make it feel personal and warm
 
-VARIABLES TO INCLUDE:
-${variableDefinitions}
+MANDATORY STRUCTURE:
+Line 1: Friendly greeting with emoji
+Line 2: [BLANK LINE]
+Line 3: Context/situation with emoji
+Line 4: [BLANK LINE] 
+Line 5: Main message with emoji
+Line 6: Call to action with emoji
+Line 7: [BLANK LINE]
+Line 8: Warm closing with emoji
 
-TONE & STYLE REQUIREMENTS:
-${toneGuidance}
+EXAMPLE FORMAT:
+Hi {{1}}! 👋
 
-LANGUAGE REQUIREMENTS:
-${languageGuidance}
+You left something special in your cart! 🛒
 
-EMOJI USAGE GUIDELINES:
-${emojiGuidance}
+Your {{2}} is waiting for you and we'd love to get it delivered by {{3}}! ✨
 
-COMPLIANCE RULES:
-- Must comply with Meta's WhatsApp Business Policy
-- No promotional language if category is "Utility" or "Authentication"
-- Use variables in order: ${placeholderList}
-- Maximum 1024 characters
-- No URLs or call-to-action buttons in message body
-- Avoid words like "Click here", "Buy now", "Limited time" for non-Marketing templates
+Don't let this amazing deal slip away! 💫
 
-STRUCTURE REQUIREMENTS:
-- Start with personalized greeting using {{1}} (customer name)
-- Include relevant business context with appropriate emojis
-- Provide clear, actionable information
-- End with appropriate closing based on use case
-- Use emojis strategically to enhance readability and engagement
+Happy shopping! 🛍️
 
-Generate ONLY the message body text. No explanations, no formatting, no additional content.`;
+Write ONLY the message body with this exact structure and emoji placement.`;
 }
 
-function getContextualGuidance(goal, category) {
-  const contexts = {
-    'Abandoned Cart': {
-      audience: 'Customers who left items in their shopping cart',
-      context: `PURPOSE: Gently remind customers about their abandoned cart and encourage completion.
-APPROACH: Be helpful, not pushy. Focus on convenience and value.
-KEY ELEMENTS: Reference specific product, mention easy completion process, create mild urgency without being aggressive.
-AVOID: Aggressive sales language, multiple exclamation marks, pressure tactics.`
-    },
-    'Order Confirmation': {
-      audience: 'Customers who just completed a purchase',
-      context: `PURPOSE: Confirm order details and provide reassurance about the purchase.
-APPROACH: Professional, reassuring, and informative.
-KEY ELEMENTS: Order confirmation, delivery timeline, thank you message, next steps.
-AVOID: Promotional content, upselling, unnecessary information.`
-    },
-    'Delivery Reminder': {
-      audience: 'Customers expecting a delivery',
-      context: `PURPOSE: Inform customers about upcoming delivery and ensure they're available.
-APPROACH: Clear, informative, and helpful.
-KEY ELEMENTS: Delivery timing, preparation instructions, contact information if needed.
-AVOID: Marketing content, promotional offers, lengthy explanations.`
-    },
-    'COD Confirmation': {
-      audience: 'Customers who chose Cash on Delivery payment',
-      context: `PURPOSE: Confirm COD order details and get explicit confirmation.
-APPROACH: Clear, direct, and professional.
-KEY ELEMENTS: Order summary, amount to be paid, confirmation request, cancellation option.
-AVOID: Promotional language, complex instructions, ambiguous terms.`
-    },
-    'Sale Offer': {
-      audience: 'Existing customers or prospects interested in promotions',
-      context: `PURPOSE: Inform about special offers or discounts.
-APPROACH: Exciting but not overwhelming, value-focused.
-KEY ELEMENTS: Clear offer details, value proposition, validity period, easy action steps.
-AVOID: Excessive exclamation marks, "too good to be true" language, complex terms.`
-    },
-    'Custom': {
-      audience: 'General customers',
-      context: `PURPOSE: Provide relevant information or updates to customers.
-APPROACH: Professional, clear, and customer-centric.
-KEY ELEMENTS: Clear purpose, relevant information, appropriate next steps.
-AVOID: Generic language, unclear messaging, irrelevant details.`
-    }
+function getExamplesForUseCase(goal, variables) {
+  const examples = {
+    'Abandoned Cart': `EXAMPLE OUTPUT:
+Hi {{1}}! 👋
+
+You left {{2}} in your cart! 🛒
+
+We're holding it for you and can deliver by {{3}} if you complete your order today! ✨
+
+Don't miss out on this great find! 💫
+
+Happy shopping! 🛍️`,
+
+    'Order Confirmation': `EXAMPLE OUTPUT:
+Hi {{1}}! 🎉
+
+Your order is confirmed! ✅
+
+We're preparing your {{2}} and it'll be delivered by {{3}}! 📦
+
+Thank you for choosing us! 💚
+
+We can't wait for you to love it! ✨`,
+
+    'Delivery Reminder': `EXAMPLE OUTPUT:
+Hi {{1}}! 📦
+
+Your {{2}} is coming today! 🚚
+
+Please be available around {{3}} for delivery! ⏰
+
+We're excited to get this to you! ✨
+
+Have a wonderful day! 😊`,
+
+    'Sale Offer': `EXAMPLE OUTPUT:
+Hi {{1}}! 🎉
+
+Special offer just for you! 🎁
+
+Get {{2}} with {{3}} discount - but hurry, it's limited time! ⏰
+
+Don't miss this amazing deal! 💫
+
+Happy shopping! 🛍️`
   };
 
-  return contexts[goal] || contexts['Custom'];
+  return examples[goal] || examples['Abandoned Cart'];
 }
 
-function getToneGuidance(tone) {
-  const toneGuides = {
-    'Conversational': `- Use natural, friendly language like talking to a friend
-- Include conversational connectors ("So", "Well", "By the way")
-- Keep sentences varied in length
-- Use contractions (we'll, you're, it's)
-- Sound warm and approachable
-- Use emojis to add personality and warmth`,
-    
-    'Informative': `- Be clear, direct, and factual
-- Use simple, easy-to-understand language
-- Structure information logically
-- Avoid emotional language
-- Focus on providing value through information
-- Use emojis to highlight key information and improve readability`,
-    
-    'Persuasive': `- Use compelling but not aggressive language
-- Focus on benefits and value
-- Include social proof elements when appropriate
-- Create gentle urgency
-- Appeal to customer needs and desires
-- Use emojis to emphasize benefits and create emotional connection`,
-    
-    'Promotional': `- Highlight offers and benefits clearly
-- Use exciting but professional language
-- Create appropriate urgency
-- Focus on value proposition
-- Make the offer irresistible but believable
-- Use emojis to make offers more attractive and eye-catching`,
-    
-    'Reassuring': `- Use calming, supportive language
-- Provide clear next steps
-- Address potential concerns proactively
-- Sound reliable and trustworthy
-- Offer assistance and support
-- Use emojis to convey warmth and support`
-  };
+function getEmojiRequirements(goal) {
+  return `EMOJI REQUIREMENTS (MANDATORY):
+- Use EXACTLY 5 emojis in the message
+- Place one emoji at the end of lines 1, 3, 5, 6, and 8
+- Choose emojis that match the context and emotion
+- Make emojis feel natural, not forced
+- Use these types: greeting (👋), context-specific, excitement (✨💫), action, closing
 
-  return toneGuides[tone] || toneGuides['Informative'];
-}
-
-function getLanguageGuidance(language) {
-  const languageGuides = {
-    'English': `- Use clear, professional English
-- Avoid complex vocabulary
-- Use active voice
-- Keep sentences concise
-- Ensure grammar is perfect
-- Use universally understood emojis`,
-    
-    'Hindi': `- Use simple, clear Hindi
-- Avoid complex Sanskrit words
-- Use familiar, everyday vocabulary
-- Maintain respectful tone with appropriate honorifics
-- Ensure proper Devanagari script if needed
-- Use culturally appropriate emojis`,
-    
-    'Hinglish': `- Mix Hindi and English naturally
-- Use English for technical terms (order, delivery, etc.)
-- Use Hindi for emotional connection and greetings
-- Keep the mix balanced and natural
-- Avoid forced code-switching
-- Use emojis that work well with both languages`
-  };
-
-  return languageGuides[language] || languageGuides['English'];
-}
-
-function getEmojiGuidance(goal, category) {
-  const baseGuidance = `EMOJI STRATEGY:
-- Use 2-4 relevant emojis per message (not excessive)
-- Place emojis strategically to enhance meaning, not decorate
-- Use emojis to break up text and improve readability
-- Choose emojis that align with brand personality and message tone`;
-
-  const categorySpecific = {
-    'Marketing': `
-MARKETING EMOJIS:
-- Use exciting, positive emojis: 🎉 🎁 ✨ 💫 🔥 ⭐
-- Highlight offers: 💰 💸 🏷️ 📢 🎯
-- Create urgency: ⏰ ⚡ 🚀
-- Show value: 💎 👑 🌟`,
-
-    'Utility': `
-UTILITY EMOJIS:
-- Use informational, helpful emojis: ℹ️ ✅ 📦 🚚 📋
-- Show status: ✔️ ⏳ 🔄 📍
-- Indicate actions: 👆 📱 💳 🏠
-- Keep professional: 📞 📧 🆔`,
-
-    'Authentication': `
-AUTHENTICATION EMOJIS:
-- Use minimal, professional emojis: 🔐 ✅ 📱 🆔
-- Security focused: 🛡️ 🔒 ✔️
-- Avoid decorative emojis
-- Keep it simple and trustworthy`
-  };
-
-  const useCaseSpecific = {
-    'Abandoned Cart': `
-ABANDONED CART EMOJIS:
-- Shopping: 🛒 🛍️ 💳 📦
-- Gentle reminders: ⏰ 💭 👀
-- Positive: ✨ 💫 😊`,
-
-    'Order Confirmation': `
-ORDER CONFIRMATION EMOJIS:
-- Success: ✅ 🎉 ✔️ 👍
-- Shipping: 📦 🚚 📍 🏠
-- Gratitude: 🙏 😊 💚`,
-
-    'Delivery Reminder': `
-DELIVERY REMINDER EMOJIS:
-- Delivery: 🚚 📦 🏠 📍
-- Time: ⏰ 📅 🕐
-- Preparation: 🚪 📱 👀`,
-
-    'COD Confirmation': `
-COD CONFIRMATION EMOJIS:
-- Money: 💰 💸 💳 💵
-- Confirmation: ✅ ❓ 👍 ❌
-- Professional: 📋 📞 ℹ️`,
-
-    'Sale Offer': `
-SALE OFFER EMOJIS:
-- Excitement: 🎉 🎁 ✨ 🔥
-- Savings: 💰 💸 🏷️ 📢
-- Limited time: ⏰ ⚡ 🚀 ⏳`,
-
-    'Custom': `
-CUSTOM EMOJIS:
-- Context appropriate emojis based on message content
-- Professional yet engaging
-- Relevant to the specific information being shared`
-  };
-
-  return `${baseGuidance}
-
-${categorySpecific[category] || categorySpecific['Utility']}
-
-${useCaseSpecific[goal] || useCaseSpecific['Custom']}
-
-EMOJI PLACEMENT RULES:
-- Start messages with a relevant emoji when appropriate
-- Use emojis to separate different pieces of information
-- End with a positive emoji when suitable
-- Don't use more than 1-2 emojis per sentence
-- Ensure emojis enhance, not distract from the message`;
+EMOJI EXAMPLES FOR ${goal}:
+👋 🛒 ✨ 💫 🛍️ (shopping)
+👋 ✅ 📦 💚 ✨ (confirmation)  
+👋 📦 🚚 ⏰ 😊 (delivery)
+👋 🎉 🎁 ⏰ 🛍️ (offers)`;
 }
 
 export default async (request, context) => {
@@ -264,18 +126,28 @@ export default async (request, context) => {
   }
 
   try {
-    // Parse request body
     const body = await request.json();
     
     console.log('Request received:', body);
-    console.log('API Key available:', !!process.env.OPENAI_API_KEY);
     
-    // Initialize OpenAI client
+    // Validate required fields
+    if (!body.category || !body.goal || !body.tone || !body.language) {
+      return new Response(JSON.stringify({
+        error: 'Missing required fields',
+        content: 'Please fill in all required fields.'
+      }), {
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+    
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY
     });
     
-    // Build enhanced prompt
     const prompt = buildPrompt(
       body.category,
       body.goal,
@@ -284,51 +156,47 @@ export default async (request, context) => {
       body.variables || []
     );
     
-    console.log('Generated prompt length:', prompt.length);
+    console.log('Generated prompt:', prompt);
     
-    // Generate response with better parameters
+    // Use more creative parameters for natural output
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Using more capable model
+      model: "gpt-4o-mini",
       messages: [{ 
         role: "system", 
-        content: `You are an expert WhatsApp Business template writer who creates engaging, emoji-rich content that brands love.
+        content: `You are a creative WhatsApp message writer who ALWAYS includes emojis and writes in a natural, human way.
 
-CRITICAL FORMATTING RULES:
-1. Use actual line breaks (\\n) between sections - this is MANDATORY
-2. Use double line breaks (\\n\\n) between major sections
-3. Include 3-5 relevant emojis strategically placed throughout the message
-4. Structure: Greeting + emoji → Context + emoji → Main message + emoji → Action + emoji → Closing + emoji
-5. Each emoji must serve a purpose and relate to the content
-6. Generate ONLY the message body with proper line breaks and emojis
+CRITICAL RULES:
+1. ALWAYS use exactly 5 emojis in every message
+2. Write like a real person, not a robot
+3. Use natural language with contractions
+4. Follow the exact line structure provided
+5. Make it warm and engaging
 
-EXAMPLE FORMAT:
-Hi {{1}}! 👋
-
-You left {{2}} in your cart! 🛒
-
-Complete your purchase now and get it delivered by {{3}}. ✨
-
-Don't miss out on this amazing deal! 💫
-
-Happy shopping! 🛍️
-
-Follow this EXACT formatting pattern with proper line breaks and strategic emoji placement.`
+If you don't include emojis, the message will be rejected.`
       }, {
         role: "user", 
         content: prompt 
       }],
-      max_tokens: 300,
-      temperature: 0.7,
-      top_p: 0.9,
-      frequency_penalty: 0.3,
-      presence_penalty: 0.2
+      max_tokens: 200,
+      temperature: 0.9,  // Higher creativity
+      top_p: 0.95,
+      frequency_penalty: 0.1,
+      presence_penalty: 0.1
     });
     
-    const content = response.choices[0].message.content.trim();
-    console.log('OpenAI response:', content);
+    let content = response.choices[0].message.content.trim();
+    
+    // Post-process to ensure emojis are present
+    if (!containsEmojis(content)) {
+      console.log('No emojis detected, adding fallback emojis');
+      content = addFallbackEmojis(content, body.goal);
+    }
+    
+    console.log('Final content:', content);
     
     return new Response(JSON.stringify({
-      content: content
+      content: content,
+      success: true
     }), {
       status: 200,
       headers: {
@@ -339,11 +207,16 @@ Follow this EXACT formatting pattern with proper line breaks and strategic emoji
     
   } catch (error) {
     console.error('Function error:', error);
+    
+    // Fallback with emojis
+    const fallbackContent = generateFallbackContent(body?.goal || 'Custom', body?.variables || []);
+    
     return new Response(JSON.stringify({
-      error: error.message,
-      content: 'Error generating template. Please try again.'
+      content: fallbackContent,
+      success: true,
+      note: 'Using fallback content due to API error'
     }), {
-      status: 500,
+      status: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
@@ -351,3 +224,86 @@ Follow this EXACT formatting pattern with proper line breaks and strategic emoji
     });
   }
 };
+
+function containsEmojis(text) {
+  const emojiRegex = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u;
+  return emojiRegex.test(text);
+}
+
+function addFallbackEmojis(content, goal) {
+  const lines = content.split('\n');
+  const emojiSets = {
+    'Abandoned Cart': ['👋', '🛒', '✨', '💫', '🛍️'],
+    'Order Confirmation': ['👋', '✅', '📦', '💚', '✨'],
+    'Delivery Reminder': ['👋', '📦', '🚚', '⏰', '😊'],
+    'Sale Offer': ['👋', '🎉', '🎁', '⏰', '🛍️'],
+    'COD Confirmation': ['👋', '📋', '💰', '✅', '🙏'],
+    'Custom': ['👋', '📱', '✨', '💫', '😊']
+  };
+  
+  const emojis = emojiSets[goal] || emojiSets['Custom'];
+  let emojiIndex = 0;
+  
+  return lines.map(line => {
+    if (line.trim() && !containsEmojis(line) && emojiIndex < emojis.length) {
+      return line + ' ' + emojis[emojiIndex++];
+    }
+    return line;
+  }).join('\n');
+}
+
+function generateFallbackContent(goal, variables) {
+  const templates = {
+    'Abandoned Cart': `Hi {{1}}! 👋
+
+You left {{2}} in your cart! 🛒
+
+Complete your purchase now and get it delivered by {{4}}! ✨
+
+Don't miss out on this amazing deal! 💫
+
+Happy shopping! 🛍️`,
+
+    'Order Confirmation': `Hi {{1}}! 🎉
+
+Your order is confirmed! ✅
+
+We're preparing your {{2}} and it'll be delivered by {{4}}! 📦
+
+Thank you for choosing us! 💚
+
+We can't wait for you to love it! ✨`,
+
+    'Delivery Reminder': `Hi {{1}}! 📦
+
+Your {{2}} is arriving today! 🚚
+
+Please be available around {{4}} for delivery! ⏰
+
+We're excited to get this to you! ✨
+
+Have a wonderful day! 😊`,
+
+    'Sale Offer': `Hi {{1}}! 🎉
+
+Special offer just for you! 🎁
+
+Get amazing deals on {{2}} - limited time only! ⏰
+
+Don't miss this incredible opportunity! 💫
+
+Happy shopping! 🛍️`,
+
+    'COD Confirmation': `Hi {{1}}! 👋
+
+Please confirm your COD order! 📋
+
+Order: {{3}} | Amount: {{5}} 💰
+
+Reply YES to confirm or NO to cancel! ✅
+
+Thank you for your business! 🙏`
+  };
+
+  return templates[goal] || templates['Abandoned Cart'];
+}
