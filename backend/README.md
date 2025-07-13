@@ -16,7 +16,7 @@ backend/
 ├── functions/
 │   └── generate_template.mjs    # Main API endpoint
 ├── utils/
-│   └── prompt-builder.js        # Prompt generation logic
+│   └── prompt-builder.js        # Enhanced prompt generation logic
 └── README.md                    # This file
 ```
 
@@ -55,7 +55,10 @@ export default async function handler(req, res) {
         { role: "user", content: prompt }
       ],
       max_tokens: 300,
-      temperature: 0.7
+      temperature: 0.8,
+      top_p: 0.95,
+      frequency_penalty: 0.2,
+      presence_penalty: 0.4
     });
 
     res.status(200).json({
@@ -108,7 +111,7 @@ export const handler = async (event, context) => {
         { role: "user", content: prompt }
       ],
       max_tokens: 300,
-      temperature: 0.7
+      temperature: 0.8
     });
 
     return {
@@ -125,7 +128,6 @@ export const handler = async (event, context) => {
       headers,
       body: JSON.stringify({
         error: error.message,
-        content: 'Error generating template. Please try again.',
         success: false
       })
     };
@@ -167,7 +169,10 @@ app.post('/api/generate_template', async (req, res) => {
         { role: "user", content: prompt }
       ],
       max_tokens: 300,
-      temperature: 0.7
+      temperature: 0.8,
+      top_p: 0.95,
+      frequency_penalty: 0.2,
+      presence_penalty: 0.4
     });
 
     res.json({
@@ -235,7 +240,7 @@ Generates a WhatsApp template based on provided parameters.
 **Response:**
 ```json
 {
-  "content": "Hi {{1}}, you left {{2}} in your cart! 🛒\n\nComplete your purchase now and get it delivered by {{3}}. Don't miss out! ✨",
+  "content": "Hi {{1}}! 👋\n\nYou left {{2}} in your cart! 🛒\n\nComplete your purchase now and get it delivered by {{3}}. Don't miss out! ✨\n\nHappy shopping! 🛍️",
   "success": true
 }
 ```
@@ -248,6 +253,34 @@ Generates a WhatsApp template based on provided parameters.
   "success": false
 }
 ```
+
+## 🎯 **Enhanced AI Features**
+
+### **Improved Prompt Engineering**
+- **Context-aware prompts** for each use case
+- **Strategic emoji placement** guidelines
+- **Proper formatting** instructions
+- **Brand-friendly** content generation
+
+### **AI Model Configuration**
+```javascript
+const response = await openai.chat.completions.create({
+  model: "gpt-4o-mini",           // More capable model
+  messages: [...],
+  max_tokens: 300,                // Sufficient for templates
+  temperature: 0.8,               // Creative but controlled
+  top_p: 0.95,                   // Focused sampling
+  frequency_penalty: 0.2,         // Reduce repetition
+  presence_penalty: 0.4           // Encourage variety
+});
+```
+
+### **Content Quality Features**
+- **3-5 strategic emojis** per message
+- **Proper line breaks** (`\n\n` for paragraphs)
+- **Structured content** flow
+- **Context-specific** language patterns
+- **Meta compliance** built-in
 
 ## 🔒 **Security Considerations**
 
@@ -298,7 +331,7 @@ app.use('/api/', limiter);
 import { buildPrompt } from '../utils/prompt-builder.js';
 
 describe('Prompt Builder', () => {
-  test('should generate valid prompt', () => {
+  test('should generate valid prompt with emojis', () => {
     const prompt = buildPrompt(
       'Marketing',
       'Abandoned Cart',
@@ -308,8 +341,8 @@ describe('Prompt Builder', () => {
     );
     
     expect(prompt).toContain('Template Category: Marketing');
-    expect(prompt).toContain('{{1}} → Customer Name');
-    expect(prompt).toContain('{{2}} → Product Name');
+    expect(prompt).toContain('EMOJI STRATEGY');
+    expect(prompt).toContain('FORMATTING REQUIREMENTS');
   });
 });
 ```
@@ -321,7 +354,7 @@ import request from 'supertest';
 import app from '../server.js';
 
 describe('Template Generation API', () => {
-  test('should generate template successfully', async () => {
+  test('should generate template with proper formatting', async () => {
     const response = await request(app)
       .post('/api/generate_template')
       .send({
@@ -334,91 +367,62 @@ describe('Template Generation API', () => {
     
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-    expect(response.body.content).toBeDefined();
+    expect(response.body.content).toContain('{{1}}');
+    expect(response.body.content).toContain('\n');
   });
 });
 ```
 
 ## 📊 **Monitoring & Logging**
 
-### **Basic Logging**
+### **Enhanced Logging**
 ```javascript
-console.log('Request received:', {
-  category: body.category,
-  goal: body.goal,
-  timestamp: new Date().toISOString(),
-  ip: req.ip
-});
+function logTemplateGeneration(data, result) {
+  console.log('Template generated:', {
+    category: data.category,
+    goal: data.goal,
+    language: data.language,
+    contentLength: result.length,
+    emojiCount: (result.match(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/gu) || []).length,
+    lineBreaks: (result.match(/\n/g) || []).length,
+    timestamp: new Date().toISOString(),
+    success: true
+  });
+}
 ```
 
 ### **Error Tracking**
 ```javascript
-// With Sentry
-import * as Sentry from '@sentry/node';
-
-try {
-  // API logic
-} catch (error) {
-  Sentry.captureException(error);
-  console.error('Template generation error:', error);
+function logError(error, context) {
+  console.error('Template generation error:', {
+    error: error.message,
+    context,
+    timestamp: new Date().toISOString(),
+    stack: error.stack
+  });
 }
 ```
 
 ## 🚀 **Performance Optimization**
 
-### **Caching**
+### **Caching Strategy**
 ```javascript
-// Simple in-memory cache
+// Simple in-memory cache for serverless
 const cache = new Map();
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
-function getCacheKey(body) {
-  return JSON.stringify(body);
+function getCacheKey(requestData) {
+  return JSON.stringify(requestData);
 }
 
-// Check cache before API call
-const cacheKey = getCacheKey(req.body);
-if (cache.has(cacheKey)) {
-  return res.json(cache.get(cacheKey));
-}
-
-// Store in cache after generation
-cache.set(cacheKey, result);
-```
-
-### **Request Optimization**
-- Use connection pooling for database connections
-- Implement request deduplication
-- Add response compression
-
-## 🔄 **Migration from Existing Systems**
-
-### **From REST API**
-If you have an existing REST API, you can integrate this as a new endpoint:
-
-```javascript
-// Add to existing Express app
-app.post('/api/whatsapp/generate-template', generateTemplateHandler);
-```
-
-### **From GraphQL**
-```javascript
-// GraphQL resolver
-const resolvers = {
-  Mutation: {
-    generateWhatsAppTemplate: async (_, args) => {
-      const prompt = buildPrompt(
-        args.category,
-        args.goal,
-        args.tone,
-        args.language,
-        args.variables
-      );
-      
-      // OpenAI call logic
-      return { content: generatedContent };
-    }
+function getFromCache(key) {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
   }
-};
+  cache.delete(key);
+  return null;
+}
 ```
 
 ## 📞 **Support**
