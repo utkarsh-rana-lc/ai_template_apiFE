@@ -1,14 +1,21 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "whatsapp-template-ai-generator",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "AI-powered WhatsApp Business template generator with React frontend and serverless backend",
+  "keywords": ["whatsapp", "template", "ai", "react", "openai", "meta", "business"],
+  "author": "Your Team",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "dev:backend": "cd backend && uvicorn main:app --reload --port 8000"
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "deploy:netlify": "npm run build && netlify deploy --prod",
+    "deploy:vercel": "npm run build && vercel --prod"
   },
   "dependencies": {
     "lucide-react": "^0.344.0",

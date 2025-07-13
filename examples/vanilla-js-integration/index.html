@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Template Generator - Vanilla JS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto py-8 px-4">
+        <h1 class="text-3xl font-bold text-center mb-8">WhatsApp Template Generator</h1>
+        
+        <!-- Template Generation Form -->
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-sm border p-6">
+            <form id="templateForm" class="space-y-6">
+                <!-- Template Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                        Template Type <span class="text-red-500">*</span>
+                    </label>
+                    <select id="category" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Choose template type...</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Utility">Utility</option>
+                        <option value="Authentication">Authentication</option>
+                    </select>
+                </div>
+
+                <!-- Use Case -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                        Use Case <span class="text-red-500">*</span>
+                    </label>
+                    <select id="goal" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Choose use case...</option>
+                        <option value="Abandoned Cart">Abandoned Cart</option>
+                        <option value="Order Confirmation">Order Confirmation</option>
+                        <option value="Delivery Reminder">Delivery Reminder</option>
+                        <option value="COD Confirmation">COD Confirmation</option>
+                        <option value="Sale Offer">Sale Offer</option>
+                        <option value="Custom">Custom</option>
+                    </select>
+                </div>
+
+                <!-- Language -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                        Language <span class="text-red-500">*</span>
+                    </label>
+                    <select id="language" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Choose language...</option>
+                        <option value="English">English</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="Hinglish">Hinglish</option>
+                    </select>
+                </div>
+
+                <!-- Tone -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                        Tone <span class="text-red-500">*</span>
+                    </label>
+                    <select id="tone" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Choose tone...</option>
+                        <option value="Conversational">Conversational</option>
+                        <option value="Informative">Informative</option>
+                        <option value="Persuasive">Persuasive</option>
+                        <option value="Promotional">Promotional</option>
+                        <option value="Reassuring">Reassuring</option>
+                    </select>
+                </div>
+
+                <!-- Variables -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-2">Variables</label>
+                    <div id="variables" class="space-y-2">
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" value="Customer Name" class="mr-3">
+                            <span class="text-sm font-medium">Customer Name</span>
+                        </label>
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" value="Product Name" class="mr-3">
+                            <span class="text-sm font-medium">Product Name</span>
+                        </label>
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" value="Order ID" class="mr-3">
+                            <span class="text-sm font-medium">Order ID</span>
+                        </label>
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" value="Delivery Date" class="mr-3">
+                            <span class="text-sm font-medium">Delivery Date</span>
+                        </label>
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" value="Discount Code" class="mr-3">
+                            <span class="text-sm font-medium">Discount Code</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm text-red-700"></p>
+                </div>
+
+                <!-- Generate Button -->
+                <button type="submit" id="generateBtn" class="w-full bg-[#00D4AA] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#00B896] transition-colors flex items-center justify-center gap-2">
+                    <span id="btnText">Generate with AI</span>
+                    <div id="btnLoader" class="hidden w-5 h-5 border-2 border-white border-t-transparent rounded-full loading"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Generated Template Display -->
+        <div id="templateResult" class="hidden max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-sm border">
+            <h3 class="text-lg font-semibold mb-4">Generated Template</h3>
+            <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                <pre id="templateContent" class="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed"></pre>
+            </div>
+            <div class="flex gap-4">
+                <button id="copyBtn" class="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Copy Template
+                </button>
+                <button id="clearBtn" class="flex-1 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const form = document.getElementById('templateForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        const errorMessage = document.getElementById('errorMessage');
+        const templateResult = document.getElementById('templateResult');
+        const templateContent = document.getElementById('templateContent');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // Form submission handler
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(form);
+            const variables = Array.from(document.querySelectorAll('#variables input:checked'))
+                .map(input => input.value);
+            
+            const requestData = {
+                category: document.getElementById('category').value,
+                goal: document.getElementById('goal').value,
+                language: document.getElementById('language').value,
+                tone: document.getElementById('tone').value,
+                variables: variables
+            };
+
+            // Validate required fields
+            if (!requestData.category || !requestData.goal || !requestData.language || !requestData.tone) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            // Show loading state
+            setLoading(true);
+            hideError();
+            hideResult();
+
+            try {
+                // Make API request
+                const response = await fetch('/api/generate_template', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.content) {
+                    showResult(data.content);
+                } else {
+                    showError(data.error || 'Failed to generate template');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Network error. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Copy button handler
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(templateContent.textContent);
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy Template';
+                }, 2000);
+            } catch (error) {
+                console.error('Copy failed:', error);
+            }
+        });
+
+        // Clear button handler
+        clearBtn.addEventListener('click', () => {
+            hideResult();
+            form.reset();
+        });
+
+        // Utility functions
+        function setLoading(loading) {
+            if (loading) {
+                generateBtn.disabled = true;
+                btnText.textContent = 'Generating...';
+                btnLoader.classList.remove('hidden');
+            } else {
+                generateBtn.disabled = false;
+                btnText.textContent = 'Generate with AI';
+                btnLoader.classList.add('hidden');
+            }
+        }
+
+        function showError(message) {
+            errorMessage.querySelector('p').textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+
+        function showResult(content) {
+            templateContent.textContent = content;
+            templateResult.classList.remove('hidden');
+        }
+
+        function hideResult() {
+            templateResult.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
