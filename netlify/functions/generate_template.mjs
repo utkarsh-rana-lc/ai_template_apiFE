@@ -291,16 +291,16 @@ export default async (request, context) => {
       model: "gpt-4o-mini", // Using more capable model
       messages: [{ 
         role: "system", 
-        content: "You are an expert WhatsApp Business template writer who creates engaging, emoji-rich content that brands love. Generate only the message body content with strategic emoji usage." 
+        content: "You are an expert WhatsApp Business template writer who creates engaging, emoji-rich content with proper formatting that brands love. You understand that proper line breaks (\\n) and strategic emoji placement are crucial for readability and engagement. Generate only the message body content with strategic emoji usage and proper formatting that complies with Meta's guidelines." 
       }, {
         role: "user", 
         content: prompt 
       }],
       max_tokens: 300,
-      temperature: 0.7,
-      top_p: 0.9,
-      frequency_penalty: 0.3,
-      presence_penalty: 0.3
+      temperature: 0.8,
+      top_p: 0.95,
+      frequency_penalty: 0.2,
+      presence_penalty: 0.4
     });
     
     const content = response.choices[0].message.content.trim();

@@ -16,19 +16,20 @@ export function buildPrompt(category, goal, tone, language, variables) {
   const toneGuidance = getToneGuidance(tone);
   const languageGuidance = getLanguageGuidance(language);
   const emojiGuidance = getEmojiGuidance(goal, category);
+  const formattingGuidance = getFormattingGuidance();
 
-  return `You are an expert WhatsApp Business API template writer with deep knowledge of Meta's messaging policies and modern e-commerce communication trends.
+  return `You are an expert WhatsApp Business template writer who creates engaging, professional templates that brands love to use. You understand modern messaging trends and Meta's compliance requirements.
 
-CONTEXT:
+CONTEXT & PURPOSE:
 - Template Category: ${category}
 - Use Case: ${goal}
 - Communication Tone: ${tone}
 - Language: ${language}
-- Target: ${contextualGuidance.audience}
+- Target Audience: ${contextualGuidance.audience}
 
 ${contextualGuidance.context}
 
-VARIABLES TO INCLUDE:
+VARIABLES TO INCLUDE (use in exact order):
 ${variableDefinitions}
 
 TONE & STYLE REQUIREMENTS:
@@ -37,25 +38,51 @@ ${toneGuidance}
 LANGUAGE REQUIREMENTS:
 ${languageGuidance}
 
-EMOJI USAGE GUIDELINES:
+EMOJI STRATEGY (CRITICAL):
 ${emojiGuidance}
+
+FORMATTING REQUIREMENTS (CRITICAL):
+${formattingGuidance}
 
 COMPLIANCE RULES:
 - Must comply with Meta's WhatsApp Business Policy
 - No promotional language if category is "Utility" or "Authentication"
 - Use variables in order: ${placeholderList}
-- Maximum 1024 characters
+- Maximum 1024 characters total
 - No URLs or call-to-action buttons in message body
 - Avoid words like "Click here", "Buy now", "Limited time" for non-Marketing templates
 
-STRUCTURE REQUIREMENTS:
-- Start with personalized greeting using {{1}} (customer name)
-- Include relevant business context with appropriate emojis
-- Provide clear, actionable information
-- End with appropriate closing based on use case
-- Use emojis strategically to enhance readability and engagement
+TEMPLATE STRUCTURE (MANDATORY):
+1. GREETING: Start with emoji + personalized greeting using {{1}}
+2. CONTEXT: 1-2 lines explaining the situation with relevant emojis
+3. MAIN MESSAGE: Core information with strategic emoji placement
+4. ACTION/NEXT STEPS: Clear next steps (if applicable)
+5. CLOSING: Positive closing with appropriate emoji
 
-Generate ONLY the message body text. No explanations, no formatting, no additional content.`;
+CRITICAL: Generate ONLY the message body text with proper line breaks and strategic emoji usage. No explanations, no formatting markers, no additional content.`;
+}
+
+function getFormattingGuidance() {
+  return `FORMATTING RULES (MUST FOLLOW):
+- Use \\n\\n for paragraph breaks (double line breaks)
+- Use \\n for single line breaks within sections
+- Start each major section on a new line
+- Keep sentences concise (max 15-20 words each)
+- Use emojis to create visual breaks between information
+- Structure: Greeting → Context → Main Message → Action → Closing
+- Each section should be visually distinct with proper spacing
+
+EXAMPLE STRUCTURE:
+Hi {{1}}! 👋
+
+[Context line with emoji] 📦
+
+[Main message line 1]
+[Main message line 2] ✨
+
+[Action/next steps] 🚀
+
+[Closing with emoji] 🙏`;
 }
 
 function getContextualGuidance(goal, category) {
@@ -63,36 +90,41 @@ function getContextualGuidance(goal, category) {
     'Abandoned Cart': {
       audience: 'Customers who left items in their shopping cart',
       context: `PURPOSE: Gently remind customers about their abandoned cart and encourage completion.
-APPROACH: Be helpful, not pushy. Focus on convenience and value.
-KEY ELEMENTS: Reference specific product, mention easy completion process, create mild urgency without being aggressive.
+APPROACH: Friendly reminder with urgency but not pushy. Focus on convenience and value.
+KEY ELEMENTS: Reference specific product, mention easy completion, create mild urgency.
+STRUCTURE: Greeting → Cart reminder → Product highlight → Easy completion → Closing
 AVOID: Aggressive sales language, multiple exclamation marks, pressure tactics.`
     },
     'Order Confirmation': {
       audience: 'Customers who just completed a purchase',
       context: `PURPOSE: Confirm order details and provide reassurance about the purchase.
-APPROACH: Professional, reassuring, and informative.
-KEY ELEMENTS: Order confirmation, delivery timeline, thank you message, next steps.
+APPROACH: Professional, reassuring, and celebratory.
+KEY ELEMENTS: Order confirmation, delivery timeline, gratitude, next steps.
+STRUCTURE: Greeting → Confirmation celebration → Order details → Timeline → Thank you
 AVOID: Promotional content, upselling, unnecessary information.`
     },
     'Delivery Reminder': {
       audience: 'Customers expecting a delivery',
-      context: `PURPOSE: Inform customers about upcoming delivery and ensure they're available.
-APPROACH: Clear, informative, and helpful.
-KEY ELEMENTS: Delivery timing, preparation instructions, contact information if needed.
+      context: `PURPOSE: Inform customers about upcoming delivery and ensure availability.
+APPROACH: Clear, helpful, and informative.
+KEY ELEMENTS: Delivery timing, preparation instructions, contact info if needed.
+STRUCTURE: Greeting → Delivery notification → Timing details → Preparation → Support
 AVOID: Marketing content, promotional offers, lengthy explanations.`
     },
     'COD Confirmation': {
       audience: 'Customers who chose Cash on Delivery payment',
       context: `PURPOSE: Confirm COD order details and get explicit confirmation.
-APPROACH: Clear, direct, and professional.
-KEY ELEMENTS: Order summary, amount to be paid, confirmation request, cancellation option.
+APPROACH: Clear, direct, and professional with easy response options.
+KEY ELEMENTS: Order summary, amount breakdown, confirmation request, cancellation option.
+STRUCTURE: Greeting → Order summary → Amount details → Confirmation request → Instructions
 AVOID: Promotional language, complex instructions, ambiguous terms.`
     },
     'Sale Offer': {
       audience: 'Existing customers or prospects interested in promotions',
-      context: `PURPOSE: Inform about special offers or discounts.
-APPROACH: Exciting but not overwhelming, value-focused.
-KEY ELEMENTS: Clear offer details, value proposition, validity period, easy action steps.
+      context: `PURPOSE: Inform about special offers and create excitement.
+APPROACH: Exciting but professional, value-focused with clear benefits.
+KEY ELEMENTS: Offer highlight, value proposition, validity period, easy action.
+STRUCTURE: Greeting → Offer announcement → Value highlight → Validity → Action
 AVOID: Excessive exclamation marks, "too good to be true" language, complex terms.`
     },
     'Custom': {
@@ -100,6 +132,7 @@ AVOID: Excessive exclamation marks, "too good to be true" language, complex term
       context: `PURPOSE: Provide relevant information or updates to customers.
 APPROACH: Professional, clear, and customer-centric.
 KEY ELEMENTS: Clear purpose, relevant information, appropriate next steps.
+STRUCTURE: Greeting → Purpose → Information → Next steps → Closing
 AVOID: Generic language, unclear messaging, irrelevant details.`
     }
   };
@@ -109,40 +142,50 @@ AVOID: Generic language, unclear messaging, irrelevant details.`
 
 function getToneGuidance(tone) {
   const toneGuides = {
-    'Conversational': `- Use natural, friendly language like talking to a friend
+    'Conversational': `CONVERSATIONAL TONE REQUIREMENTS:
+- Use natural, friendly language like talking to a friend
 - Include conversational connectors ("So", "Well", "By the way")
-- Keep sentences varied in length
-- Use contractions (we'll, you're, it's)
-- Sound warm and approachable
-- Use emojis to add personality and warmth`,
+- Keep sentences varied in length and natural flow
+- Use contractions (we'll, you're, it's, don't)
+- Sound warm and approachable with personal touch
+- Use emojis to add personality and warmth (3-4 per message)
+- Example phrases: "Hey there!", "Just wanted to let you know", "Hope you're doing well"`,
     
-    'Informative': `- Be clear, direct, and factual
+    'Informative': `INFORMATIVE TONE REQUIREMENTS:
+- Be clear, direct, and factual with structured information
 - Use simple, easy-to-understand language
-- Structure information logically
-- Avoid emotional language
-- Focus on providing value through information
-- Use emojis to highlight key information and improve readability`,
+- Structure information logically with clear sections
+- Avoid emotional language, focus on facts
+- Provide value through clear, actionable information
+- Use emojis to highlight key information and improve readability (2-3 per message)
+- Example phrases: "Here's what you need to know", "Important update", "Details below"`,
     
-    'Persuasive': `- Use compelling but not aggressive language
-- Focus on benefits and value
-- Include social proof elements when appropriate
-- Create gentle urgency
-- Appeal to customer needs and desires
-- Use emojis to emphasize benefits and create emotional connection`,
+    'Persuasive': `PERSUASIVE TONE REQUIREMENTS:
+- Use compelling but not aggressive language
+- Focus on benefits and value proposition clearly
+- Include subtle urgency and appeal to needs
+- Create desire while maintaining professionalism
+- Appeal to customer needs and desires effectively
+- Use emojis to emphasize benefits and create emotional connection (3-4 per message)
+- Example phrases: "Don't miss out", "Perfect for you", "Limited opportunity"`,
     
-    'Promotional': `- Highlight offers and benefits clearly
+    'Promotional': `PROMOTIONAL TONE REQUIREMENTS:
+- Highlight offers and benefits with excitement
 - Use exciting but professional language
-- Create appropriate urgency
-- Focus on value proposition
-- Make the offer irresistible but believable
-- Use emojis to make offers more attractive and eye-catching`,
+- Create appropriate urgency without being pushy
+- Focus on value proposition and savings
+- Make offers irresistible but believable
+- Use emojis to make offers attractive and eye-catching (4-5 per message)
+- Example phrases: "Special offer!", "Exclusive deal", "Save big", "Limited time"`,
     
-    'Reassuring': `- Use calming, supportive language
-- Provide clear next steps
+    'Reassuring': `REASSURING TONE REQUIREMENTS:
+- Use calming, supportive language that builds confidence
+- Provide clear next steps and guidance
 - Address potential concerns proactively
-- Sound reliable and trustworthy
-- Offer assistance and support
-- Use emojis to convey warmth and support`
+- Sound reliable, trustworthy, and helpful
+- Offer assistance and support clearly
+- Use emojis to convey warmth, support, and reliability (2-3 per message)
+- Example phrases: "We've got you covered", "Everything is on track", "We're here to help"`
   };
 
   return toneGuides[tone] || toneGuides['Informative'];
@@ -150,97 +193,119 @@ function getToneGuidance(tone) {
 
 function getLanguageGuidance(language) {
   const languageGuides = {
-    'English': `- Use clear, professional English
-- Avoid complex vocabulary
-- Use active voice
-- Keep sentences concise
-- Ensure grammar is perfect
-- Use universally understood emojis`,
+    'English': `ENGLISH LANGUAGE REQUIREMENTS:
+- Use clear, professional English with modern business communication style
+- Avoid overly complex vocabulary, keep it accessible
+- Use active voice and direct communication
+- Keep sentences concise but complete (10-15 words ideal)
+- Ensure perfect grammar and professional presentation
+- Use universally understood emojis that work globally
+- Maintain consistent tone throughout the message`,
     
-    'Hindi': `- Use simple, clear Hindi
-- Avoid complex Sanskrit words
-- Use familiar, everyday vocabulary
-- Maintain respectful tone with appropriate honorifics
-- Ensure proper Devanagari script if needed
-- Use culturally appropriate emojis`,
+    'Hindi': `HINDI LANGUAGE REQUIREMENTS:
+- Use simple, clear Hindi with everyday vocabulary
+- Avoid complex Sanskrit words, use familiar terms
+- Use appropriate honorifics (आप, जी) for respectful tone
+- Maintain cultural sensitivity and appropriate formality
+- Ensure proper sentence structure and grammar
+- Use culturally appropriate emojis that resonate with Indian audience
+- Mix formal and friendly elements appropriately`,
     
-    'Hinglish': `- Mix Hindi and English naturally
-- Use English for technical terms (order, delivery, etc.)
-- Use Hindi for emotional connection and greetings
-- Keep the mix balanced and natural
-- Avoid forced code-switching
-- Use emojis that work well with both languages`
+    'Hinglish': `HINGLISH LANGUAGE REQUIREMENTS:
+- Mix Hindi and English naturally and authentically
+- Use English for technical/business terms (order, delivery, payment)
+- Use Hindi for emotional connection and greetings (नमस्ते, धन्यवाद)
+- Keep the mix balanced and natural, avoid forced switching
+- Maintain readability for both Hindi and English speakers
+- Use emojis that work well with both languages
+- Ensure the flow feels natural and conversational`
   };
 
   return languageGuides[language] || languageGuides['English'];
 }
 
 function getEmojiGuidance(goal, category) {
-  const baseGuidance = `EMOJI STRATEGY:
-- Use 2-4 relevant emojis per message (not excessive)
-- Place emojis strategically to enhance meaning, not decorate
-- Use emojis to break up text and improve readability
-- Choose emojis that align with brand personality and message tone`;
+  const baseGuidance = `EMOJI STRATEGY (CRITICAL FOR BRAND APPEAL):
+- Use 3-5 relevant emojis per message (brands love visual appeal)
+- Place emojis strategically to enhance meaning and create visual breaks
+- Use emojis to separate different pieces of information
+- Choose emojis that align with brand personality and message tone
+- NEVER use emojis just for decoration - each must serve a purpose`;
 
   const categorySpecific = {
     'Marketing': `
-MARKETING EMOJIS:
-- Use exciting, positive emojis: 🎉 🎁 ✨ 💫 🔥 ⭐
-- Highlight offers: 💰 💸 🏷️ 📢 🎯
-- Create urgency: ⏰ ⚡ 🚀
-- Show value: 💎 👑 🌟`,
+MARKETING EMOJI REQUIREMENTS:
+- Use exciting, positive emojis: 🎉 🎁 ✨ 💫 🔥 ⭐ 🌟 💎
+- Highlight offers and savings: 💰 💸 🏷️ 📢 🎯 💳 🛍️
+- Create urgency and excitement: ⏰ ⚡ 🚀 ⏳ 🔔 📣
+- Show value and premium feel: 💎 👑 🌟 ✨ 🏆 💫
+- Use celebration emojis: 🎉 🥳 🎊 🎈 🍾`,
 
     'Utility': `
-UTILITY EMOJIS:
-- Use informational, helpful emojis: ℹ️ ✅ 📦 🚚 📋
-- Show status: ✔️ ⏳ 🔄 📍
-- Indicate actions: 👆 📱 💳 🏠
-- Keep professional: 📞 📧 🆔`,
+UTILITY EMOJI REQUIREMENTS:
+- Use informational, helpful emojis: ℹ️ ✅ 📦 🚚 📋 📍 📞
+- Show status and progress: ✔️ ⏳ 🔄 📍 🕐 📅
+- Indicate actions needed: 👆 📱 💳 🏠 📧 📞
+- Keep professional but friendly: 📞 📧 🆔 ℹ️ 📋 ✅
+- Use confirmation emojis: ✅ ✔️ 👍 ☑️`,
 
     'Authentication': `
-AUTHENTICATION EMOJIS:
-- Use minimal, professional emojis: 🔐 ✅ 📱 🆔
-- Security focused: 🛡️ 🔒 ✔️
-- Avoid decorative emojis
-- Keep it simple and trustworthy`
+AUTHENTICATION EMOJI REQUIREMENTS:
+- Use minimal, professional emojis: 🔐 ✅ 📱 🆔 🔒
+- Security and trust focused: 🛡️ 🔒 ✔️ 🔐 🆔
+- Avoid decorative emojis, keep it simple
+- Maximum 2-3 emojis total for professional feel
+- Focus on security and verification: 🔐 ✅ 📱`
   };
 
   const useCaseSpecific = {
     'Abandoned Cart': `
-ABANDONED CART EMOJIS:
-- Shopping: 🛒 🛍️ 💳 📦
-- Gentle reminders: ⏰ 💭 👀
-- Positive: ✨ 💫 😊`,
+ABANDONED CART EMOJI STRATEGY:
+- Shopping context: 🛒 🛍️ 💳 📦 🎁 💝
+- Gentle reminders: ⏰ 💭 👀 🔔 📱
+- Positive encouragement: ✨ 💫 😊 🌟 💖
+- Value emphasis: 💰 💸 🏷️ 💎
+EXAMPLE PLACEMENT: "Hi {{1}}! 👋\\n\\nYou left {{2}} in your cart 🛒\\n\\nComplete your purchase now and save! ✨"`,
 
     'Order Confirmation': `
-ORDER CONFIRMATION EMOJIS:
-- Success: ✅ 🎉 ✔️ 👍
-- Shipping: 📦 🚚 📍 🏠
-- Gratitude: 🙏 😊 💚`,
+ORDER CONFIRMATION EMOJI STRATEGY:
+- Success and celebration: ✅ 🎉 ✔️ 👍 🥳 🎊
+- Shipping and delivery: 📦 🚚 📍 🏠 🚛 📬
+- Gratitude and appreciation: 🙏 😊 💚 ❤️ 🤝
+- Timeline and process: 📅 ⏰ 🕐 📋
+EXAMPLE PLACEMENT: "Hi {{1}}! 🎉\\n\\nYour order is confirmed ✅\\n\\nWe'll deliver by {{3}} 📦🚚"`,
 
     'Delivery Reminder': `
-DELIVERY REMINDER EMOJIS:
-- Delivery: 🚚 📦 🏠 📍
-- Time: ⏰ 📅 🕐
-- Preparation: 🚪 📱 👀`,
+DELIVERY REMINDER EMOJI STRATEGY:
+- Delivery and logistics: 🚚 📦 🏠 📍 🚛 📬
+- Time and scheduling: ⏰ 📅 🕐 ⏳ 🔔
+- Preparation and readiness: 🚪 📱 👀 🏠 📞
+- Professional service: 📞 📧 ℹ️ 👨‍💼
+EXAMPLE PLACEMENT: "Hi {{1}}! 📦\\n\\nYour order arrives today 🚚\\n\\nPlease be available at {{3}} ⏰"`,
 
     'COD Confirmation': `
-COD CONFIRMATION EMOJIS:
-- Money: 💰 💸 💳 💵
-- Confirmation: ✅ ❓ 👍 ❌
-- Professional: 📋 📞 ℹ️`,
+COD CONFIRMATION EMOJI STRATEGY:
+- Money and payment: 💰 💸 💳 💵 💴 🏦
+- Confirmation and choice: ✅ ❓ 👍 ❌ ☑️ 📝
+- Professional and clear: 📋 📞 ℹ️ 📧 📱
+- Order details: 📦 🛍️ 📋 🆔
+EXAMPLE PLACEMENT: "Hi {{1}}! 📋\\n\\nCOD Order: {{3}} 💰\\n\\nAmount: ₹{{4}} 💸\\n\\nConfirm? ✅❌"`,
 
     'Sale Offer': `
-SALE OFFER EMOJIS:
-- Excitement: 🎉 🎁 ✨ 🔥
-- Savings: 💰 💸 🏷️ 📢
-- Limited time: ⏰ ⚡ 🚀 ⏳`,
+SALE OFFER EMOJI STRATEGY:
+- Excitement and celebration: 🎉 🎁 ✨ 🔥 🥳 🎊
+- Savings and value: 💰 💸 🏷️ 📢 💎 🌟
+- Limited time urgency: ⏰ ⚡ 🚀 ⏳ 🔔 📣
+- Shopping and products: 🛍️ 🛒 💳 🎁 💝
+EXAMPLE PLACEMENT: "Hi {{1}}! 🎉\\n\\nSpecial offer just for you! 🎁\\n\\nSave {{3}} on {{2}} 💰\\n\\nLimited time! ⏰"`,
 
     'Custom': `
-CUSTOM EMOJIS:
+CUSTOM EMOJI STRATEGY:
 - Context appropriate emojis based on message content
-- Professional yet engaging
-- Relevant to the specific information being shared`
+- Professional yet engaging approach
+- Relevant to the specific information being shared
+- 2-4 emojis strategically placed
+- Focus on clarity and brand appeal`
   };
 
   return `${baseGuidance}
@@ -249,10 +314,17 @@ ${categorySpecific[category] || categorySpecific['Utility']}
 
 ${useCaseSpecific[goal] || useCaseSpecific['Custom']}
 
-EMOJI PLACEMENT RULES:
-- Start messages with a relevant emoji when appropriate
-- Use emojis to separate different pieces of information
-- End with a positive emoji when suitable
-- Don't use more than 1-2 emojis per sentence
-- Ensure emojis enhance, not distract from the message`;
+EMOJI PLACEMENT RULES (MANDATORY):
+1. START: Begin with relevant emoji after greeting
+2. SECTIONS: Use emojis to separate different information blocks
+3. EMPHASIS: Place emojis after key information points
+4. CLOSING: End with positive, appropriate emoji
+5. SPACING: Ensure emojis don't clutter the text
+6. CONTEXT: Each emoji must relate to the content around it
+
+FORMATTING WITH EMOJIS:
+- Line 1: Greeting + emoji
+- Line 2: Context + relevant emoji  
+- Line 3-4: Main message with strategic emoji placement
+- Final line: Closing + positive emoji`;
 }
