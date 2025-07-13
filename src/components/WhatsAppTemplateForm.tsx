@@ -115,8 +115,8 @@ const WhatsAppTemplateForm: React.FC = () => {
         variables: formData.variables,
       });
 
-      // Try production API first, fallback to ngrok for local development
-      const apiUrl = '/api/generate_template';  // Use Netlify function
+      // Use Netlify function endpoint
+      const apiUrl = '/.netlify/functions/generate_template';
       
       const response = await fetch(apiUrl, {
         method: 'POST',
