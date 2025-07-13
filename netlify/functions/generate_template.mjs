@@ -8,8 +8,9 @@ function buildPrompt(category, goal, tone, language, variables) {
   const contextualGuidance = getContextualGuidance(goal, category);
   const toneGuidance = getToneGuidance(tone);
   const languageGuidance = getLanguageGuidance(language);
+  const emojiGuidance = getEmojiGuidance(goal, category);
 
-  return `You are an expert WhatsApp Business API template writer with deep knowledge of Meta's messaging policies and e-commerce best practices.
+  return `You are an expert WhatsApp Business API template writer with deep knowledge of Meta's messaging policies and modern e-commerce communication trends.
 
 CONTEXT:
 - Template Category: ${category}
@@ -29,20 +30,23 @@ ${toneGuidance}
 LANGUAGE REQUIREMENTS:
 ${languageGuidance}
 
+EMOJI USAGE GUIDELINES:
+${emojiGuidance}
+
 COMPLIANCE RULES:
 - Must comply with Meta's WhatsApp Business Policy
 - No promotional language if category is "Utility" or "Authentication"
 - Use variables in order: ${placeholderList}
 - Maximum 1024 characters
-- No emojis in Authentication templates
 - No URLs or call-to-action buttons in message body
 - Avoid words like "Click here", "Buy now", "Limited time" for non-Marketing templates
 
 STRUCTURE REQUIREMENTS:
 - Start with personalized greeting using {{1}} (customer name)
-- Include relevant business context
+- Include relevant business context with appropriate emojis
 - Provide clear, actionable information
 - End with appropriate closing based on use case
+- Use emojis strategically to enhance readability and engagement
 
 Generate ONLY the message body text. No explanations, no formatting, no additional content.`;
 }
@@ -102,31 +106,36 @@ function getToneGuidance(tone) {
 - Include conversational connectors ("So", "Well", "By the way")
 - Keep sentences varied in length
 - Use contractions (we'll, you're, it's)
-- Sound warm and approachable`,
+- Sound warm and approachable
+- Use emojis to add personality and warmth`,
     
     'Informative': `- Be clear, direct, and factual
 - Use simple, easy-to-understand language
 - Structure information logically
 - Avoid emotional language
-- Focus on providing value through information`,
+- Focus on providing value through information
+- Use emojis to highlight key information and improve readability`,
     
     'Persuasive': `- Use compelling but not aggressive language
 - Focus on benefits and value
 - Include social proof elements when appropriate
 - Create gentle urgency
-- Appeal to customer needs and desires`,
+- Appeal to customer needs and desires
+- Use emojis to emphasize benefits and create emotional connection`,
     
     'Promotional': `- Highlight offers and benefits clearly
 - Use exciting but professional language
 - Create appropriate urgency
 - Focus on value proposition
-- Make the offer irresistible but believable`,
+- Make the offer irresistible but believable
+- Use emojis to make offers more attractive and eye-catching`,
     
     'Reassuring': `- Use calming, supportive language
 - Provide clear next steps
 - Address potential concerns proactively
 - Sound reliable and trustworthy
-- Offer assistance and support`
+- Offer assistance and support
+- Use emojis to convey warmth and support`
   };
 
   return toneGuides[tone] || toneGuides['Informative'];
@@ -138,22 +147,107 @@ function getLanguageGuidance(language) {
 - Avoid complex vocabulary
 - Use active voice
 - Keep sentences concise
-- Ensure grammar is perfect`,
+- Ensure grammar is perfect
+- Use universally understood emojis`,
     
     'Hindi': `- Use simple, clear Hindi
 - Avoid complex Sanskrit words
 - Use familiar, everyday vocabulary
 - Maintain respectful tone with appropriate honorifics
-- Ensure proper Devanagari script if needed`,
+- Ensure proper Devanagari script if needed
+- Use culturally appropriate emojis`,
     
     'Hinglish': `- Mix Hindi and English naturally
 - Use English for technical terms (order, delivery, etc.)
 - Use Hindi for emotional connection and greetings
 - Keep the mix balanced and natural
-- Avoid forced code-switching`
+- Avoid forced code-switching
+- Use emojis that work well with both languages`
   };
 
   return languageGuides[language] || languageGuides['English'];
+}
+
+function getEmojiGuidance(goal, category) {
+  const baseGuidance = `EMOJI STRATEGY:
+- Use 2-4 relevant emojis per message (not excessive)
+- Place emojis strategically to enhance meaning, not decorate
+- Use emojis to break up text and improve readability
+- Choose emojis that align with brand personality and message tone`;
+
+  const categorySpecific = {
+    'Marketing': `
+MARKETING EMOJIS:
+- Use exciting, positive emojis: 🎉 🎁 ✨ 💫 🔥 ⭐
+- Highlight offers: 💰 💸 🏷️ 📢 🎯
+- Create urgency: ⏰ ⚡ 🚀
+- Show value: 💎 👑 🌟`,
+
+    'Utility': `
+UTILITY EMOJIS:
+- Use informational, helpful emojis: ℹ️ ✅ 📦 🚚 📋
+- Show status: ✔️ ⏳ 🔄 📍
+- Indicate actions: 👆 📱 💳 🏠
+- Keep professional: 📞 📧 🆔`,
+
+    'Authentication': `
+AUTHENTICATION EMOJIS:
+- Use minimal, professional emojis: 🔐 ✅ 📱 🆔
+- Security focused: 🛡️ 🔒 ✔️
+- Avoid decorative emojis
+- Keep it simple and trustworthy`
+  };
+
+  const useCaseSpecific = {
+    'Abandoned Cart': `
+ABANDONED CART EMOJIS:
+- Shopping: 🛒 🛍️ 💳 📦
+- Gentle reminders: ⏰ 💭 👀
+- Positive: ✨ 💫 😊`,
+
+    'Order Confirmation': `
+ORDER CONFIRMATION EMOJIS:
+- Success: ✅ 🎉 ✔️ 👍
+- Shipping: 📦 🚚 📍 🏠
+- Gratitude: 🙏 😊 💚`,
+
+    'Delivery Reminder': `
+DELIVERY REMINDER EMOJIS:
+- Delivery: 🚚 📦 🏠 📍
+- Time: ⏰ 📅 🕐
+- Preparation: 🚪 📱 👀`,
+
+    'COD Confirmation': `
+COD CONFIRMATION EMOJIS:
+- Money: 💰 💸 💳 💵
+- Confirmation: ✅ ❓ 👍 ❌
+- Professional: 📋 📞 ℹ️`,
+
+    'Sale Offer': `
+SALE OFFER EMOJIS:
+- Excitement: 🎉 🎁 ✨ 🔥
+- Savings: 💰 💸 🏷️ 📢
+- Limited time: ⏰ ⚡ 🚀 ⏳`,
+
+    'Custom': `
+CUSTOM EMOJIS:
+- Context appropriate emojis based on message content
+- Professional yet engaging
+- Relevant to the specific information being shared`
+  };
+
+  return `${baseGuidance}
+
+${categorySpecific[category] || categorySpecific['Utility']}
+
+${useCaseSpecific[goal] || useCaseSpecific['Custom']}
+
+EMOJI PLACEMENT RULES:
+- Start messages with a relevant emoji when appropriate
+- Use emojis to separate different pieces of information
+- End with a positive emoji when suitable
+- Don't use more than 1-2 emojis per sentence
+- Ensure emojis enhance, not distract from the message`;
 }
 
 export default async (request, context) => {
@@ -197,7 +291,7 @@ export default async (request, context) => {
       model: "gpt-4o-mini", // Using more capable model
       messages: [{ 
         role: "system", 
-        content: "You are an expert WhatsApp Business template writer. Generate only the message body content, nothing else." 
+        content: "You are an expert WhatsApp Business template writer who creates engaging, emoji-rich content that brands love. Generate only the message body content with strategic emoji usage." 
       }, {
         role: "user", 
         content: prompt 
