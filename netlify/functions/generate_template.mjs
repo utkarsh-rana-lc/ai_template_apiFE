@@ -45,6 +45,9 @@ export default async (request, context) => {
     // Parse request body
     const body = await request.json();
     
+    console.log('Request received:', body);
+    console.log('API Key available:', !!process.env.OPENAI_API_KEY);
+    
     // Initialize OpenAI client
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY
@@ -56,17 +59,24 @@ export default async (request, context) => {
       body.goal,
       body.tone,
       body.language,
-      body.variables
+      body.variables || []
     );
+    
+    console.log('Generated prompt:', prompt);
     
     // Generate response
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }]
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 500,
+      temperature: 0.7
     });
     
+    const content = response.choices[0].message.content;
+    console.log('OpenAI response:', content);
+    
     return new Response(JSON.stringify({
-      content: response.choices[0].message.content
+      content: content
     }), {
       status: 200,
       headers: {
@@ -76,7 +86,7 @@ export default async (request, context) => {
     });
     
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Function error:', error);
     return new Response(JSON.stringify({
       error: error.message,
       content: 'Error generating template. Please try again.'
