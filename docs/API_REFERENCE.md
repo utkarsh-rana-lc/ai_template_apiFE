@@ -5,8 +5,8 @@ Complete API documentation for the WhatsApp Template AI Generator.
 ## 📡 **Base URL**
 
 ```
-Production: https://your-domain.com/api
-Development: http://localhost:3000/api
+Production: https://your-domain.netlify.app/.netlify/functions
+Development: http://localhost:8888/.netlify/functions
 ```
 
 ## 🔐 **Authentication**
@@ -247,7 +247,7 @@ Results in:
 ### **cURL Example**
 
 ```bash
-curl -X POST https://your-domain.com/api/generate_template \
+curl -X POST https://your-domain.netlify.app/.netlify/functions/generate_template \
   -H "Content-Type: application/json" \
   -d '{
     "category": "Marketing",
@@ -261,7 +261,7 @@ curl -X POST https://your-domain.com/api/generate_template \
 ### **JavaScript/Fetch Example**
 
 ```javascript
-const response = await fetch('/api/generate_template', {
+const response = await fetch('/.netlify/functions/generate_template', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -284,7 +284,7 @@ console.log(data.content);
 ```python
 import requests
 
-url = "https://your-domain.com/api/generate_template"
+url = "https://your-domain.netlify.app/.netlify/functions/generate_template"
 payload = {
     "category": "Marketing",
     "goal": "Sale Offer",

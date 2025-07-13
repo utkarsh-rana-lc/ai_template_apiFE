@@ -20,7 +20,7 @@ Netlify provides seamless deployment with built-in serverless functions.
 ```bash
 # Push your code to GitHub/GitLab
 git add .
-git commit -m "Initial commit"
+git commit -m "Deploy AI Template WA"
 git push origin main
 ```
 
@@ -35,7 +35,7 @@ git push origin main
   NODE_VERSION = "18"
 
 [[redirects]]
-  from = "/api/*"
+  from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
@@ -62,9 +62,7 @@ netlify deploy --prod --dir=dist
 ```
 netlify/
 └── functions/
-    ├── generate_template.mjs
-    └── utils/
-        └── prompt-builder.js
+    └── generate_template.mjs
 ```
 
 ### **2. Vercel**

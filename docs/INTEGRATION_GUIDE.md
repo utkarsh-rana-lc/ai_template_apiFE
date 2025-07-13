@@ -32,11 +32,11 @@ The WhatsApp Template AI Generator consists of two main components:
 1. **Copy the component files:**
 ```bash
 # Copy frontend components
-cp -r frontend/components/ your-project/src/components/
-cp -r frontend/types/ your-project/src/types/
+cp -r src/components/ your-project/src/components/
+cp -r src/types/ your-project/src/types/
 
 # Copy backend functions (if needed)
-cp -r backend/ your-project/
+cp -r netlify/functions/ your-project/netlify/functions/
 ```
 
 2. **Install dependencies:**
@@ -54,10 +54,10 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 ```bash
 # Add as submodule
-git submodule add <repository-url> whatsapp-template-generator
+git submodule add https://github.com/yourusername/ai_template_WA.git ai-template-wa
 
 # Update your imports
-import { WhatsAppTemplateForm } from './whatsapp-template-generator/frontend/components/WhatsAppTemplateForm';
+import { WhatsAppTemplateForm } from './ai-template-wa/src/components/WhatsAppTemplateForm';
 ```
 
 ### **Method 3: NPM Package (Future)**

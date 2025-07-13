@@ -1,6 +1,6 @@
-# WhatsApp Template AI Generator
+# AI Template WA
 
-A React component and API service for generating Meta-compliant WhatsApp Business templates using OpenAI's GPT models.
+An AI-powered React component and API service for generating Meta-compliant WhatsApp Business templates using OpenAI's GPT models.
 
 ## 🎯 **Project Overview**
 
@@ -65,8 +65,8 @@ whatsapp-template-ai-generator/
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
-cd whatsapp-template-ai-generator
+git clone https://github.com/yourusername/ai_template_WA.git
+cd ai_template_WA
 ```
 
 2. **Install dependencies**

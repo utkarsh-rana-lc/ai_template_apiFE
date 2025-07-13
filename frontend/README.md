@@ -1,6 +1,6 @@
-# Frontend Integration Guide
+# AI Template WA - Frontend Integration Guide
 
-This guide explains how to integrate the WhatsApp Template Generator React component into your existing application.
+This guide explains how to integrate the AI Template WA React component into your existing application.
 
 ## 📦 **Installation**
 
@@ -13,7 +13,7 @@ npm install lucide-react
 
 ### **Option 2: NPM Package (Future)**
 ```bash
-npm install whatsapp-template-generator
+npm install ai-template-wa
 ```
 
 ## 🚀 **Basic Usage**

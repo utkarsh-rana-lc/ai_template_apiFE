@@ -1,23 +1,19 @@
-# Backend Integration Guide
+# AI Template WA - Backend Integration Guide
 
-This guide explains how to integrate the WhatsApp Template Generator API into your existing backend infrastructure.
+This guide explains how to integrate the AI Template WA API into your existing backend infrastructure.
 
 ## 🏗️ **Architecture Overview**
 
 The backend consists of:
-- **Serverless Function**: Main API endpoint for template generation
-- **Prompt Builder**: Utility for creating context-aware AI prompts
+- **Netlify Function**: Main API endpoint for template generation
 - **OpenAI Integration**: GPT-4o-mini for content generation
 
 ## 📁 **File Structure**
 
 ```
-backend/
-├── functions/
-│   └── generate_template.mjs    # Main API endpoint
-├── utils/
-│   └── prompt-builder.js        # Enhanced prompt generation logic
-└── README.md                    # This file
+netlify/
+└── functions/
+    └── generate_template.mjs    # Main API endpoint
 ```
 
 ## 🚀 **Deployment Options**

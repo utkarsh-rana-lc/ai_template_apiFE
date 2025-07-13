@@ -16,9 +16,6 @@ export default async (request, context) => {
   try {
     const body = await request.json();
     
-    console.log('Request received:', body);
-    console.log('API Key available:', !!process.env.OPENAI_API_KEY);
-    
     // Validate required fields
     if (!body.category || !body.goal || !body.tone || !body.language) {
       return new Response(JSON.stringify({
@@ -39,7 +36,7 @@ export default async (request, context) => {
       apiKey: process.env.OPENAI_API_KEY
     });
     
-    // Build the prompt
+    // Build enhanced prompt
     const prompt = buildPrompt(
       body.category,
       body.goal,
@@ -48,38 +45,24 @@ export default async (request, context) => {
       body.variables || []
     );
     
-    console.log('Generated prompt:', prompt);
-    
-    // Generate response with OpenAI
+    // Generate response with optimized parameters
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [
-        { 
-          role: "system", 
-          content: "You are an expert WhatsApp Business template writer. You MUST include exactly 4-5 emojis in every message. You MUST use proper line breaks (\\n\\n for paragraphs). You MUST keep messages under 1000 characters. Write naturally and conversationally, not robotically."
-        },
-        {
-          role: "user", 
-          content: prompt 
-        }
-      ],
+      messages: [{ 
+        role: "system", 
+        content: "You are an expert WhatsApp Business template writer who creates engaging, emoji-rich content that brands love. Generate only the message body content with strategic emoji usage that complies with Meta's guidelines." 
+      }, {
+        role: "user", 
+        content: prompt 
+      }],
       max_tokens: 300,
-      temperature: 0.8,
+      temperature: 0.7,
       top_p: 0.9,
       frequency_penalty: 0.3,
       presence_penalty: 0.3
     });
     
-    let content = response.choices[0].message.content.trim();
-    console.log('Raw AI response:', content);
-    
-    // Ensure content is under 1024 characters for WhatsApp
-    if (content.length > 1024) {
-      content = content.substring(0, 1020) + '...';
-    }
-    
-    console.log('Final content:', content);
-    console.log('Content length:', content.length);
+    const content = response.choices[0].message.content.trim();
     
     return new Response(JSON.stringify({
       content: content,
@@ -110,41 +93,36 @@ export default async (request, context) => {
 };
 
 function buildPrompt(category, goal, tone, language, variables) {
-  const variableDefinitions = variables.map((v, i) => `{{${i+1}}} = ${v}`).join('\n');
-  
-  return `Create a WhatsApp Business template for:
-- Category: ${category}
-- Use Case: ${goal}
-- Tone: ${tone}
-- Language: ${language}
+  const variableDefinitions = variables.map((v, i) => `- {{${i+1}}} → ${v}`).join('\n');
+  const placeholderList = variables.map((_, i) => `{{${i+1}}}`).join(', ');
 
-Variables to use:
+  const prompt = `You are a WhatsApp Business template expert. Create a ${tone.toLowerCase()} ${language} template for ${goal}.
+
+Template Category: ${category}
+Use Case: ${goal}
+Tone: ${tone}
+Language: ${language}
+
+Variables to include in order:
 ${variableDefinitions}
 
 CRITICAL REQUIREMENTS:
-1. MUST include exactly 4-5 emojis throughout the message
-2. MUST use \\n\\n for paragraph breaks (double line breaks)
-3. MUST be under 1000 characters total
-4. MUST sound natural and conversational, NOT robotic
-5. MUST use the variables in order: ${variables.map((_, i) => `{{${i+1}}}`).join(', ')}
+1. Include 3-5 relevant emojis strategically placed throughout
+2. Use proper line breaks (\\n\\n for paragraphs, \\n for single breaks)
+3. Keep under 1024 characters total
+4. Sound natural and ${tone.toLowerCase()}, not robotic
+5. Use variables in exact order: ${placeholderList}
+6. Comply with Meta's WhatsApp Business policies
+7. Make it engaging and brand-friendly
 
-Structure:
-- Line 1: Greeting with emoji
-- Line 2: Empty line (\\n\\n)
-- Line 3: Context with emoji
-- Line 4: Empty line (\\n\\n)
-- Line 5: Main message with emoji
-- Line 6: Empty line (\\n\\n)
-- Line 7: Closing with emoji
+Structure your response with:
+- Personalized greeting with emoji
+- Clear context/situation
+- Main message with key information
+- Call to action or next steps
+- Positive closing with emoji
 
-Example format:
-Hi {{1}}! 👋
+Generate ONLY the message body content. No explanations or formatting markers.`;
 
-You left {{2}} in your cart! 🛒
-
-Complete your purchase now and get it delivered by {{3}}! ✨
-
-Don't miss out! 💫
-
-Generate ONLY the message content with proper emojis and line breaks. No explanations.`;
+  return prompt;
 }

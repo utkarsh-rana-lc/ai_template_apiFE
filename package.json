@@ -1,9 +1,9 @@
 {
-  "name": "whatsapp-template-ai-generator",
+  "name": "ai-template-wa",
   "private": true,
   "version": "1.0.0",
-  "description": "AI-powered WhatsApp Business template generator with React frontend and serverless backend",
-  "keywords": ["whatsapp", "template", "ai", "react", "openai", "meta", "business"],
+  "description": "AI-powered WhatsApp Business template generator with React frontend and Netlify functions",
+  "keywords": ["whatsapp", "template", "ai", "react", "openai", "meta", "business", "netlify"],
   "author": "Your Team",
   "license": "MIT",
   "type": "module",
