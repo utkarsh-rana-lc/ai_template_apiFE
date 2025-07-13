@@ -60,6 +60,20 @@ TEMPLATE STRUCTURE (MANDATORY):
 5. CLOSING: Positive closing with appropriate emoji
 
 CRITICAL: Generate ONLY the message body text with proper line breaks and strategic emoji usage. No explanations, no formatting markers, no additional content.`;
+
+EXAMPLE OUTPUT FORMAT (MANDATORY):
+Hi {{1}}! 👋
+
+[Context line with emoji] 📦
+
+[Main message line 1]
+[Main message line 2] ✨
+
+[Action/next steps] 🚀
+
+[Closing with emoji] 🙏
+
+YOU MUST follow this exact structure with line breaks and emojis.`;
 }
 
 function getFormattingGuidance() {

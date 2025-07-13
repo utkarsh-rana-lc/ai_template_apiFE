@@ -291,16 +291,37 @@ export default async (request, context) => {
       model: "gpt-4o-mini", // Using more capable model
       messages: [{ 
         role: "system", 
-        content: "You are an expert WhatsApp Business template writer who creates engaging, emoji-rich content with proper formatting that brands love. You understand that proper line breaks (\\n) and strategic emoji placement are crucial for readability and engagement. Generate only the message body content with strategic emoji usage and proper formatting that complies with Meta's guidelines." 
+        content: `You are an expert WhatsApp Business template writer who creates engaging, emoji-rich content that brands love.
+
+CRITICAL FORMATTING RULES:
+1. Use actual line breaks (\\n) between sections - this is MANDATORY
+2. Use double line breaks (\\n\\n) between major sections
+3. Include 3-5 relevant emojis strategically placed throughout the message
+4. Structure: Greeting + emoji → Context + emoji → Main message + emoji → Action + emoji → Closing + emoji
+5. Each emoji must serve a purpose and relate to the content
+6. Generate ONLY the message body with proper line breaks and emojis
+
+EXAMPLE FORMAT:
+Hi {{1}}! 👋
+
+You left {{2}} in your cart! 🛒
+
+Complete your purchase now and get it delivered by {{3}}. ✨
+
+Don't miss out on this amazing deal! 💫
+
+Happy shopping! 🛍️
+
+Follow this EXACT formatting pattern with proper line breaks and strategic emoji placement.`
       }, {
         role: "user", 
         content: prompt 
       }],
       max_tokens: 300,
-      temperature: 0.8,
-      top_p: 0.95,
-      frequency_penalty: 0.2,
-      presence_penalty: 0.4
+      temperature: 0.7,
+      top_p: 0.9,
+      frequency_penalty: 0.3,
+      presence_penalty: 0.2
     });
     
     const content = response.choices[0].message.content.trim();
