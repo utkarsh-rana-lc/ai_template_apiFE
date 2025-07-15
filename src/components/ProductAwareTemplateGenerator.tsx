@@ -169,36 +169,78 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
 
       if (response.ok) {
         const templates = await response.json();
-        setGeneratedTemplates(templates.map((t: any) => ({
-          product: t.product,
-          content: t.content,
-          variables: t.variables
-        })));
+        console.log('API Response:', templates);
+        
+        // Validate that templates respect variable selection
+        const validatedTemplates = templates.map((t: any) => {
+          const template = {
+            product: t.product,
+            content: t.content || t.body || '', // Handle different response formats
+            variables: t.variables || {}
+          };
+          
+          // Validate variable count matches selection
+          const expectedVarCount = variables.length;
+          const actualVarCount = Object.keys(template.variables).length;
+          
+          if (actualVarCount !== expectedVarCount) {
+            console.warn(`Variable count mismatch for ${t.product}: expected ${expectedVarCount}, got ${actualVarCount}`);
+          }
+          
+          return template;
+        });
+        
+        setGeneratedTemplates(validatedTemplates);
       } else {
         // Fallback to mock data for demo
-        const mockTemplates: GeneratedTemplate[] = selectedProducts.map(product => ({
-          product: product.name,
-          content: `Hi {{1}}, your ${product.name} is waiting for you! 🌟\n\n${product.description}\n\nComplete your purchase now and get glowing skin! ✨\n\nUse code {{2}} for extra savings! 💰\n\nOrder by {{3}} for fast delivery! 🚚\n\nDon't miss out! 💫`,
-          variables: {
-            '{{1}}': 'Customer Name',
-            '{{2}}': 'Discount Code',
-            '{{3}}': 'Delivery Date'
+        const mockTemplates: GeneratedTemplate[] = selectedProducts.map(product => {
+          // Create mock template that respects variable selection
+          const variableMap: Record<string, string> = {};
+          variables.forEach((variable, index) => {
+            variableMap[`{{${index + 1}}}`] = variable;
+          });
+          
+          let mockContent = '';
+          if (variables.length === 0) {
+            mockContent = `Your ${product.name} is waiting for you! 🌟\n\n${product.description}\n\nComplete your purchase now! ✨\n\nDon't miss out! 💫`;
+          } else if (variables.length === 1) {
+            mockContent = `{{1}}, your ${product.name} is waiting! 🌟\n\n${product.description}\n\nComplete your purchase now! ✨\n\nDon't miss out! 💫`;
+          } else if (variables.length === 2) {
+            mockContent = `{{1}}, your {{2}} is waiting! 🌟\n\n${product.description}\n\nComplete your purchase now! ✨\n\nDon't miss out! 💫`;
+          } else {
+            const varStr = variables.map((_, i) => `{{${i+1}}}`).slice(0, 3).join(', ');
+            mockContent = `${varStr.split(',')[0]}, your ${varStr.split(',')[1] || product.name} is ready! 🌟\n\n${product.description}\n\nOrder: ${varStr.split(',')[2] || 'confirmed'} ✨\n\nDon't miss out! 💫`;
           }
-        }));
+          
+          return {
+            product: product.name,
+            content: mockContent,
+            variables: variableMap
+          };
+        });
         setGeneratedTemplates(mockTemplates);
       }
     } catch (error) {
       console.error('Error generating templates:', error);
-      // Fallback mock data
-      const mockTemplates: GeneratedTemplate[] = selectedProducts.map(product => ({
-        product: product.name,
-        content: `Hi {{1}}, your ${product.name} is waiting for you! 🌟\n\n${product.description}\n\nComplete your purchase now and get glowing skin! ✨\n\nUse code {{2}} for extra savings! 💰\n\nOrder by {{3}} for fast delivery! 🚚\n\nDon't miss out! 💫`,
-        variables: {
-          '{{1}}': 'Customer Name',
-          '{{2}}': 'Discount Code',
-          '{{3}}': 'Delivery Date'
-        }
-      }));
+      // Error fallback that respects variable selection
+      const mockTemplates: GeneratedTemplate[] = selectedProducts.map(product => {
+        const variableMap: Record<string, string> = {};
+        variables.forEach((variable, index) => {
+          variableMap[`{{${index + 1}}}`] = variable;
+        });
+        
+        const mockContent = variables.length === 0 
+          ? `Your ${product.name} is waiting! 🌟\n\n${product.description}\n\nGet it now! ✨`
+          : variables.length === 1
+          ? `{{1}}, your ${product.name} is waiting! 🌟\n\n${product.description}\n\nGet it now! ✨`
+          : `{{1}}, your {{2}} is waiting! 🌟\n\n${product.description}\n\nGet it now! ✨`;
+        
+        return {
+          product: product.name,
+          content: mockContent,
+          variables: variableMap
+        };
+      });
       setGeneratedTemplates(mockTemplates);
     } finally {
       setIsGenerating(false);
@@ -214,14 +256,28 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
     try {
       // Mock regeneration - replace with actual API call
       setTimeout(() => {
+        // Create regenerated template that respects current variable selection
+        const variableMap: Record<string, string> = {};
+        variables.forEach((variable, index) => {
+          variableMap[`{{${index + 1}}}`] = variable;
+        });
+        
+        let regeneratedContent = '';
+        if (variables.length === 0) {
+          regeneratedContent = `🌟 ${productName} is calling you!\n\n${product.description}\n\nComplete your order now! ✨\n\nSpecial offer just for you! 🎁`;
+        } else if (variables.length === 1) {
+          regeneratedContent = `🌟 ${productName} is calling {{1}}!\n\n${product.description}\n\nComplete your order now! ✨\n\nSpecial offer just for you! 🎁`;
+        } else if (variables.length === 2) {
+          regeneratedContent = `🌟 {{2}} is calling {{1}}!\n\n${product.description}\n\nComplete your order now! ✨\n\nSpecial offer just for you! 🎁`;
+        } else {
+          const varUsage = variables.map((_, i) => `{{${i+1}}}`);
+          regeneratedContent = `🌟 ${varUsage[1] || productName} is calling ${varUsage[0]}!\n\n${product.description}\n\n${varUsage[2] ? `Use ${varUsage[2]} for savings!` : 'Complete your order now!'} ✨\n\n${varUsage[3] ? `Delivery: ${varUsage[3]}` : 'Special offer just for you!'} 🎁`;
+        }
+        
         const newTemplate: GeneratedTemplate = {
           product: productName,
-          content: `🌟 ${productName} is calling you!\n\nDon't let your skincare routine wait! ${product.description}\n\nYour skin deserves the best care. Complete your order now! ✨\n\nSpecial offer just for you! 🎁\n\nUse {{2}} for instant savings! 💰\n\nOrder by {{3}} today! 🚚`,
-          variables: {
-            '{{1}}': 'Customer Name',
-            '{{2}}': 'Discount Code',
-            '{{3}}': 'Delivery Date'
-          }
+          content: regeneratedContent,
+          variables: variableMap
         };
 
         setGeneratedTemplates(prev =>
@@ -657,10 +713,10 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                       )}
 
                       {/* Variables Info */}
-                      {Object.keys(template.variables).length > 0 && (
+                      {Object.keys(template.variables || {}).length > 0 && (
                         <div className="mt-2 p-2 bg-gray-50 rounded text-xs max-w-sm ml-auto">
                           <div className="font-medium text-gray-700 mb-1">Variables:</div>
-                          {Object.entries(template.variables).map(([key, value]) => (
+                          {Object.entries(template.variables || {}).map(([key, value]) => (
                             <div key={key} className="text-gray-600">
                               <code className="bg-gray-200 px-1 rounded">{key}</code> → {value}
                             </div>
