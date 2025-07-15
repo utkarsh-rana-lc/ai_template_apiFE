@@ -212,6 +212,8 @@ FINAL VALIDATION CHECKLIST:
 - ✅ 3-5 emojis included
 - ✅ Proper line breaks used
 
+${regenerationNote}
+
 Generate ONLY the WhatsApp message content. Use EXACTLY ${maxVariables} variables: ${approvedVariables.join(', ')}`;
 }
 
