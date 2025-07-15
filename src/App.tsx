@@ -1,11 +1,9 @@
 import React from 'react';
-import ProductAwareDemo from './components/ProductAwareDemo';
+import MainApp from './components/MainApp';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
-      <ProductAwareDemo />
-    </div>
+    <MainApp />
   );
 }
 

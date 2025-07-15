@@ -252,9 +252,9 @@ const ProductAwareTemplateModal: React.FC<ProductAwareTemplateModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-7xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-lg max-w-7xl w-full h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Product-Aware Template Generator</h2>
             <p className="text-sm text-gray-600 mt-1">Generate WhatsApp templates for specific products</p>
@@ -268,10 +268,10 @@ const ProductAwareTemplateModal: React.FC<ProductAwareTemplateModalProps> = ({
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
             {/* Left Column - Form */}
-            <div className="p-6 border-r border-gray-200 overflow-y-auto">
+            <div className="p-6 border-r border-gray-200 overflow-y-auto max-h-full">
               <div className="space-y-6">
                 {/* Product Selector */}
                 <div>
@@ -526,7 +526,7 @@ const ProductAwareTemplateModal: React.FC<ProductAwareTemplateModalProps> = ({
             </div>
 
             {/* Right Column - Previews */}
-            <div className="p-6 overflow-y-auto bg-gray-50">
+            <div className="p-6 overflow-y-auto bg-gray-50 max-h-full">
               {selectedProducts.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-center">
                   <div>
