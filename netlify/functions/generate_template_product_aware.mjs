@@ -301,33 +301,6 @@ function createFallbackTemplate(product, goal, tone, variables) {
     variables: variableMap
   };
 }
-    'Abandoned Checkout': {
-      header: `{{1}}, your {{2}} is waiting! 🛒`,
-      body: `${product.description} ✨\n\nUse code {{3}} for extra savings! 💰\n\nComplete your purchase now and get amazing results! 💫\n\nDon't miss out on this deal! 🌟`,
-      footer: ''
-    },
-    'Order Confirmation': {
-      header: `{{1}}, order confirmed! 🎉`,
-      body: `Your {{2}} is on its way! ✅\n\nOrder ID: {{3}} 📋\n\n${product.description}\n\nExpected delivery: {{4}} 📦\n\nThank you for choosing us! 🙏`,
-      footer: ''
-    },
-    'Upsell': {
-      header: `{{1}}, perfect addition for you! 🌟`,
-      body: `Since you love quality products... 💫\n\n{{2}}: ${product.description}\n\nGet {{4}} off with code {{3}}! 🎁\n\nUpgrade your routine today! ✨`,
-      footer: ''
-    }
-  };
-  
-  const template = fallbackTemplates[goal] || fallbackTemplates['Upsell'];
-  
-  return {
-    product: product.name,
-    header: template.header,
-    body: template.body,
-    footer: template.footer,
-    variables: variableMap
-  };
-}
 
 function getProductContextualGuidance(goal, product) {
   const contexts = {
