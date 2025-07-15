@@ -254,39 +254,95 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
     setRegeneratingProduct(productName);
 
     try {
-      // Mock regeneration - replace with actual API call
-      setTimeout(() => {
-        // Create regenerated template that respects current variable selection
-        const variableMap: Record<string, string> = {};
-        variables.forEach((variable, index) => {
-          variableMap[`{{${index + 1}}}`] = variable;
-        });
-        
-        let regeneratedContent = '';
-        if (variables.length === 0) {
-          regeneratedContent = `🌟 ${productName} is calling you!\n\n${product.description}\n\nComplete your order now! ✨\n\nSpecial offer just for you! 🎁`;
-        } else if (variables.length === 1) {
-          regeneratedContent = `🌟 ${productName} is calling {{1}}!\n\n${product.description}\n\nComplete your order now! ✨\n\nSpecial offer just for you! 🎁`;
-        } else if (variables.length === 2) {
-          regeneratedContent = `🌟 {{2}} is calling {{1}}!\n\n${product.description}\n\nComplete your order now! ✨\n\nSpecial offer just for you! 🎁`;
-        } else {
-          const varUsage = variables.map((_, i) => `{{${i+1}}}`);
-          regeneratedContent = `🌟 ${varUsage[1] || productName} is calling ${varUsage[0]}!\n\n${product.description}\n\n${varUsage[2] ? `Use ${varUsage[2]} for savings!` : 'Complete your order now!'} ✨\n\n${varUsage[3] ? `Delivery: ${varUsage[3]}` : 'Special offer just for you!'} 🎁`;
-        }
-        
-        const newTemplate: GeneratedTemplate = {
-          product: productName,
-          content: regeneratedContent,
-          variables: variableMap
-        };
+      // Call the actual API for regeneration
+      const payload = {
+        products: [product],
+        goal: useCase,
+        tone,
+        language,
+        variables,
+        custom_prompt: customPrompt,
+        add_buttons: addButtons,
+        button_config: addButtons ? buttonConfig : null,
+        regenerate: true // Flag to indicate this is a regeneration
+      };
 
-        setGeneratedTemplates(prev =>
-          prev.map(t => t.product === productName ? newTemplate : t)
-        );
-        setRegeneratingProduct(null);
-      }, 2000);
+      console.log(`Regenerating template for ${productName}:`, payload);
+
+      const response = await fetch('/.netlify/functions/generate_template_product_aware', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        const templates = await response.json();
+        console.log('Regeneration API Response:', templates);
+        
+        if (templates && templates.length > 0) {
+          const regeneratedTemplate = templates[0];
+          
+          // Validate and update the specific template
+          const validatedTemplate = {
+            product: regeneratedTemplate.product,
+            content: regeneratedTemplate.content || regeneratedTemplate.body || '',
+            variables: regeneratedTemplate.variables || {}
+          };
+          
+          setGeneratedTemplates(prev =>
+            prev.map(t => t.product === productName ? validatedTemplate : t)
+          );
+          
+          console.log(`✅ Successfully regenerated template for ${productName}`);
+        }
+      } else {
+        throw new Error(`API returned ${response.status}`);
+      }
     } catch (error) {
       console.error('Error regenerating template:', error);
+      
+      // Enhanced fallback with better randomization
+      const variableMap: Record<string, string> = {};
+      variables.forEach((variable, index) => {
+        variableMap[`{{${index + 1}}}`] = variable;
+      });
+      
+      // Create multiple fallback variations for better regeneration
+      const fallbackVariations = [
+        {
+          0: `Your ${productName} is waiting! 🌟\n\n${product.description}\n\nComplete your purchase now! ✨\n\nDon't miss out! 💫`,
+          1: `{{1}}, your ${productName} is ready! 🎉\n\n${product.description}\n\nGet it now! ✨\n\nLimited time offer! 🔥`,
+          2: `{{1}}, your {{2}} is calling! 📞\n\n${product.description}\n\nOrder now! ✨\n\nSpecial deal! 💎`
+        },
+        {
+          0: `🔥 ${productName} back in stock!\n\n${product.description}\n\nOrder before it's gone! ⚡\n\nAct fast! 🚀`,
+          1: `{{1}}, don't miss ${productName}! 🎯\n\n${product.description}\n\nLimited quantity! ⏰\n\nSecure yours! 💪`,
+          2: `{{1}}, your {{2}} awaits! 👑\n\n${product.description}\n\nExclusive offer! 🎁\n\nClaim now! ✨`
+        },
+        {
+          0: `✨ ${productName} special offer!\n\n${product.description}\n\nDon't wait! 🏃‍♀️\n\nGet yours today! 🛒`,
+          1: `{{1}}, ${productName} is perfect for you! 💖\n\n${product.description}\n\nTreat yourself! 🌟\n\nOrder now! 🎉`,
+          2: `{{1}}, your {{2}} journey starts here! 🚀\n\n${product.description}\n\nBegin today! ✨\n\nTransform now! 💫`
+        }
+      ];
+      
+      // Select random variation
+      const randomVariation = fallbackVariations[Math.floor(Math.random() * fallbackVariations.length)];
+      const variableCount = Math.min(variables.length, 2); // Cap at 2 for fallback
+      const fallbackContent = randomVariation[variableCount as keyof typeof randomVariation] || randomVariation[0];
+      
+      const fallbackTemplate: GeneratedTemplate = {
+        product: productName,
+        content: fallbackContent,
+        variables: variableMap
+      };
+      
+      setGeneratedTemplates(prev =>
+        prev.map(t => t.product === productName ? fallbackTemplate : t)
+      );
+      
+      console.log(`✅ Used enhanced fallback for ${productName}`);
+    } finally {
       setRegeneratingProduct(null);
     }
   };
