@@ -127,7 +127,13 @@ export default async (request, context) => {
 };
 
 function buildProductAwarePrompt(product, goal, tone, language, variables, customPrompt, addButtons, buttonConfig) {
-  const variableDefinitions = variables.map((v, i) => `- {{${i+1}}} → ${v}`).join('\n');
+  const variableDefinitions = variables.length > 0 
+    ? variables.map((v, i) => `- {{${i+1}}} → ${v}`).join('\n')
+    : '- {{1}} → Customer Name (default)';
+  
+  const variableList = variables.length > 0 
+    ? variables.map((_, i) => `{{${i+1}}}`).join(', ')
+    : '{{1}}';
   
   const contextualGuidance = getProductContextualGuidance(goal, product);
   const toneGuidance = getToneGuidance(tone);
@@ -157,6 +163,18 @@ TEMPLATE REQUIREMENTS:
 VARIABLES TO INCLUDE:
 ${variableDefinitions}
 
+CRITICAL VARIABLE USAGE RULES:
+- You MUST use ALL selected variables: ${variableList}
+- Use variables in the EXACT order provided
+- Each variable must appear at least once in the message
+- Variables should be naturally integrated into the content
+- Example usage patterns:
+  - {{1}} for customer name in greeting
+  - {{2}} for product name in body
+  - {{3}} for order ID or discount code
+  - {{4}} for delivery date or price
+  - {{5}} for additional context
+
 CUSTOM INSTRUCTIONS:
 ${customPrompt || 'None'}
 
@@ -170,21 +188,31 @@ CRITICAL FORMATTING REQUIREMENTS:
 - MUST highlight ${product.name} benefits from description
 - MUST create appropriate urgency for ${goal}
 - MUST follow Meta's WhatsApp Business guidelines
-- MUST use variables in exact order provided
+- MUST use ALL variables provided: ${variableList}
 - MUST include product-specific details and benefits
 
 CONTENT STRUCTURE:
 Generate a single flowing message that includes:
-1. Personalized greeting with {{1}} and relevant emoji
-2. Context about ${product.name} and situation
+1. Personalized greeting with {{1}} (customer name) and relevant emoji
+2. Context about ${product.name} (use {{2}} if product name is a variable) and situation
 3. Product benefits from description with emojis
-4. Call to action appropriate for ${goal}
-5. Closing with brand voice and emoji
+4. Include other variables naturally ({{3}}, {{4}}, {{5}} etc.)
+5. Call to action appropriate for ${goal}
+6. Closing with brand voice and emoji
+
+VARIABLE INTEGRATION EXAMPLES:
+- "Hi {{1}}, your {{2}} order {{3}} is ready!"
+- "{{1}}, get {{4}} off on {{2}} with code {{5}}!"
+- "Hi {{1}}, your {{2}} will be delivered by {{4}}!"
 
 EXAMPLE STYLE (for reference):
-{{1}}, your ${product.name} is waiting! 🌟
+{{1}}, your {{2}} is waiting! 🌟
 
 ${product.description} ✨
+
+Use code {{3}} for extra savings! 💰
+
+Order by {{4}} for fast delivery! 🚚
 
 Complete your order now and get glowing results! 💫
 
@@ -199,10 +227,13 @@ function parseTemplateResponse(content, productName, variables) {
   
   // Create variable mapping based on provided variables
   const variableMap = {};
-  if (Object.keys(variableMap).length === 0) {
-    variables.forEach((variable, index) => {
-      variableMap[`{{${index + 1}}}`] = variable;
-    });
+  variables.forEach((variable, index) => {
+    variableMap[`{{${index + 1}}}`] = variable;
+  });
+  
+  // If no variables provided, add default
+  if (variables.length === 0) {
+    variableMap['{{1}}'] = 'Customer Name';
   }
   
   // Split content into logical sections for WhatsApp display
@@ -226,20 +257,25 @@ function createFallbackTemplate(product, goal, tone, variables) {
     variableMap[`{{${index + 1}}}`] = variable;
   });
   
+  // If no variables, add default
+  if (variables.length === 0) {
+    variableMap['{{1}}'] = 'Customer Name';
+  }
+  
   const fallbackTemplates = {
     'Abandoned Checkout': {
-      header: `{{1}}, your ${product.name} is waiting! 🛒`,
-      body: `${product.description} ✨\n\nComplete your purchase now and get amazing results! 💫\n\nDon't miss out on this deal! 🌟`,
+      header: `{{1}}, your {{2}} is waiting! 🛒`,
+      body: `${product.description} ✨\n\nUse code {{3}} for extra savings! 💰\n\nComplete your purchase now and get amazing results! 💫\n\nDon't miss out on this deal! 🌟`,
       footer: ''
     },
     'Order Confirmation': {
       header: `{{1}}, order confirmed! 🎉`,
-      body: `Your ${product.name} is on its way! ✅\n\n${product.description}\n\nExpected delivery: {{4}} 📦\n\nThank you for choosing us! 🙏`,
+      body: `Your {{2}} is on its way! ✅\n\nOrder ID: {{3}} 📋\n\n${product.description}\n\nExpected delivery: {{4}} 📦\n\nThank you for choosing us! 🙏`,
       footer: ''
     },
     'Upsell': {
       header: `{{1}}, perfect addition for you! 🌟`,
-      body: `Since you love quality products... 💫\n\n${product.name}: ${product.description}\n\nSpecial offer just for you! 🎁\n\nUpgrade your routine today! ✨`,
+      body: `Since you love quality products... 💫\n\n{{2}}: ${product.description}\n\nGet {{4}} off with code {{3}}! 🎁\n\nUpgrade your routine today! ✨`,
       footer: ''
     }
   };
