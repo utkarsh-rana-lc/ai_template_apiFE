@@ -141,7 +141,7 @@ function buildProductAwarePrompt(product, goal, tone, language, variables, custo
 - Include button in the BUTTONS section of your response`;
   }
 
-  return `You are creating a WhatsApp Business template for a specific product.
+  return `You are creating a WhatsApp Business template for a specific product. Generate engaging, emoji-rich content that follows Meta's guidelines.
 
 PRODUCT INFORMATION:
 - Name: ${product.name}
@@ -162,80 +162,60 @@ ${customPrompt || 'None'}
 
 ${buttonInstructions}
 
-FORMATTING REQUIREMENTS:
-- MUST include 4-5 relevant emojis strategically placed
-- MUST use proper line breaks (\\n\\n for paragraphs)
-- MUST be under 1000 characters total
+CRITICAL FORMATTING REQUIREMENTS:
+- MUST include 4-6 relevant emojis strategically placed throughout
+- MUST use proper line breaks (\\n\\n for paragraph separation)
+- MUST be under 1000 characters total (WhatsApp limit)
 - MUST sound natural and ${tone.toLowerCase()}, NOT robotic
-- MUST highlight product benefits and features
-- MUST create urgency/desire appropriate for ${goal}
+- MUST highlight ${product.name} benefits from description
+- MUST create appropriate urgency for ${goal}
+- MUST follow Meta's WhatsApp Business guidelines
+- MUST use variables in exact order provided
+- MUST include product-specific details and benefits
 
-RESPONSE FORMAT (MANDATORY):
-Structure your response exactly like this:
+CONTENT STRUCTURE:
+Generate a single flowing message that includes:
+1. Personalized greeting with {{1}} and relevant emoji
+2. Context about ${product.name} and situation
+3. Product benefits from description with emojis
+4. Call to action appropriate for ${goal}
+5. Closing with brand voice and emoji
 
-HEADER: [Engaging header with emoji]
+EXAMPLE STYLE (for reference):
+{{1}}, your ${product.name} is waiting! 🌟
 
-BODY: [Main message content with product focus, proper line breaks, and strategic emojis]
+${product.description} ✨
 
-FOOTER: [Brief footer if needed]
+Complete your order now and get glowing results! 💫
 
-VARIABLES: [List the variables used: {{1}} = Customer Name, {{2}} = Product Name, etc.]
+Don't miss out! 🛍️
 
-Generate ONLY the template content in this exact format. Make it product-specific, engaging, and perfect for ${goal}.`;
+Generate ONLY the message content as a single flowing text. No sections, no formatting markers, just the WhatsApp message content.`;
 }
 
 function parseTemplateResponse(content, productName, variables) {
-  const lines = content.split('\n');
-  let header = '';
-  let body = '';
-  let footer = '';
-  let variableMap = {};
-  
-  let currentSection = '';
-  
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    
-    if (trimmedLine.startsWith('HEADER:')) {
-      currentSection = 'header';
-      header = trimmedLine.replace('HEADER:', '').trim();
-    } else if (trimmedLine.startsWith('BODY:')) {
-      currentSection = 'body';
-      body = trimmedLine.replace('BODY:', '').trim();
-    } else if (trimmedLine.startsWith('FOOTER:')) {
-      currentSection = 'footer';
-      footer = trimmedLine.replace('FOOTER:', '').trim();
-    } else if (trimmedLine.startsWith('VARIABLES:')) {
-      currentSection = 'variables';
-    } else if (currentSection === 'body' && trimmedLine) {
-      body += (body ? '\n\n' : '') + trimmedLine;
-    } else if (currentSection === 'footer' && trimmedLine) {
-      footer += (footer ? '\n' : '') + trimmedLine;
-    } else if (currentSection === 'variables' && trimmedLine.includes('=')) {
-      const [key, value] = trimmedLine.split('=').map(s => s.trim());
-      if (key && value) {
-        variableMap[key] = value;
-      }
-    }
-  }
-  
-  // If parsing failed, treat entire content as body
-  if (!header && !body) {
-    body = content;
-  }
+  // Since we're generating single flowing content, treat it all as body
+  const cleanContent = content.trim();
   
   // Create variable mapping based on provided variables
+  const variableMap = {};
   if (Object.keys(variableMap).length === 0) {
     variables.forEach((variable, index) => {
       variableMap[`{{${index + 1}}}`] = variable;
     });
   }
   
+  // Split content into logical sections for WhatsApp display
+  const lines = cleanContent.split('\n\n');
+  const header = lines[0] || `Hi {{1}}! 👋`;
+  const body = lines.slice(1, -1).join('\n\n') || cleanContent;
+  const footer = lines.length > 2 ? lines[lines.length - 1] : '';
+  
   return {
     product: productName,
-    header: header || `👋 Hey {{1}}!`,
-    body: body || `Your ${productName} is waiting for you! 🌟\n\nDon't miss out on this amazing product! ✨`,
-    footer: footer || '',
+    header,
+    body,
+    footer,
     variables: variableMap
   };
 }
@@ -248,19 +228,19 @@ function createFallbackTemplate(product, goal, tone, variables) {
   
   const fallbackTemplates = {
     'Abandoned Checkout': {
-      header: `👋 Hey {{1}}!`,
-      body: `You left ${product.name} in your cart! 🛒\n\n${product.description}\n\nComplete your purchase now and get glowing results! ✨\n\nDon't miss out! 💫`,
-      footer: 'Limited time offer. Shop now!'
+      header: `{{1}}, your ${product.name} is waiting! 🛒`,
+      body: `${product.description} ✨\n\nComplete your purchase now and get amazing results! 💫\n\nDon't miss out on this deal! 🌟`,
+      footer: ''
     },
     'Order Confirmation': {
-      header: `🎉 Order Confirmed!`,
-      body: `Hi {{1}}, great news! ✅\n\nYour ${product.name} order is confirmed!\n\n${product.description}\n\nWe'll deliver it soon! 📦`,
-      footer: 'Thank you for choosing us!'
+      header: `{{1}}, order confirmed! 🎉`,
+      body: `Your ${product.name} is on its way! ✅\n\n${product.description}\n\nExpected delivery: {{4}} 📦\n\nThank you for choosing us! 🙏`,
+      footer: ''
     },
     'Upsell': {
-      header: `🌟 Perfect Match!`,
-      body: `Hi {{1}}, since you love great products... 💫\n\nTry ${product.name}! ${product.description}\n\nSpecial offer just for you! 🎁\n\nUpgrade your routine today! ✨`,
-      footer: 'Limited time offer!'
+      header: `{{1}}, perfect addition for you! 🌟`,
+      body: `Since you love quality products... 💫\n\n${product.name}: ${product.description}\n\nSpecial offer just for you! 🎁\n\nUpgrade your routine today! ✨`,
+      footer: ''
     }
   };
   

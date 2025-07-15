@@ -256,7 +256,7 @@ const ProductAwareTemplateModal: React.FC<ProductAwareTemplateModalProps> = ({
         {/* Header */}
         <div className="p-6 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Product-Aware Template Generator</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Product and Context-Aware Template Generator</h2>
             <p className="text-sm text-gray-600 mt-1">Generate WhatsApp templates for specific products</p>
           </div>
           <button
@@ -565,36 +565,42 @@ const ProductAwareTemplateModal: React.FC<ProductAwareTemplateModalProps> = ({
                         </div>
 
                         {/* WhatsApp Preview */}
-                        <div className="p-4">
-                          <div className="bg-[#E3F2FD] rounded-2xl rounded-bl-md p-4 max-w-sm">
-                            {/* Header */}
-                            {template.header && (
-                              <div className="font-medium text-gray-800 mb-2">
-                                {template.header}
-                              </div>
-                            )}
-
-                            {/* Body */}
-                            <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-line mb-2">
-                              {template.body}
+                        <div className="p-4 bg-[#e5ddd5]">
+                          {/* WhatsApp Message Container */}
+                          <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto relative">
+                            {/* Media Section (Video Placeholder) */}
+                            <div className="bg-black rounded-t-lg h-32 flex items-center justify-center relative">
+                              <div className="text-white text-4xl">▶</div>
+                              <div className="absolute bottom-2 right-2 text-white text-xs">0:15</div>
                             </div>
-
-                            {/* Footer */}
-                            {template.footer && (
-                              <div className="text-xs text-gray-600 italic">
-                                {template.footer}
+                            
+                            {/* Message Content */}
+                            <div className="p-3">
+                              {/* Combined Content */}
+                              <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line text-left">
+                                {`${template.header}\n\n${template.body}${template.footer ? `\n\n${template.footer}` : ''}`}
                               </div>
-                            )}
-
-                            {/* Buttons */}
-                            {addButtons && buttonConfig.text && (
-                              <div className="mt-3 pt-3 border-t border-gray-200">
-                                <button className="w-full bg-blue-500 text-white py-2 px-4 rounded text-sm font-medium">
-                                  {buttonConfig.text}
-                                </button>
+                              
+                              {/* Timestamp */}
+                              <div className="text-xs text-gray-500 text-right mt-2">
+                                1:04 AM
                               </div>
-                            )}
+                            </div>
                           </div>
+                          
+                          {/* Buttons (Outside message bubble) */}
+                          {addButtons && buttonConfig.text && (
+                            <div className="mt-2 space-y-2 max-w-sm ml-auto">
+                              <button className="w-full bg-white border border-gray-300 text-blue-600 py-3 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
+                                {buttonConfig.text}
+                              </button>
+                              {buttonConfig.type === 'CTA' && (
+                                <button className="w-full bg-white border border-gray-300 text-blue-600 py-3 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
+                                  Copy offer code
+                                </button>
+                              )}
+                            </div>
+                          )}
 
                           {/* Variables Info */}
                           {Object.keys(template.variables).length > 0 && (
@@ -614,7 +620,7 @@ const ProductAwareTemplateModal: React.FC<ProductAwareTemplateModalProps> = ({
                           <button
                             onClick={() => regenerateTemplate(template.product)}
                             disabled={regeneratingProduct === template.product}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm font-medium"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm font-medium"
                           >
                             {regeneratingProduct === template.product ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -622,13 +628,6 @@ const ProductAwareTemplateModal: React.FC<ProductAwareTemplateModalProps> = ({
                               <RefreshCw className="w-4 h-4" />
                             )}
                             Regenerate
-                          </button>
-                          <button
-                            onClick={() => handleInsert(template)}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Insert
                           </button>
                         </div>
                       </div>

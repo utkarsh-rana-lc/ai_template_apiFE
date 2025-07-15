@@ -76,7 +76,7 @@ const TemplateTypeSelector: React.FC<TemplateTypeSelectorProps> = ({ onSelectTyp
               </div>
               
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Product-Aware Templates
+                Product and Context-Aware Templates
               </h2>
               
               <p className="text-gray-600 mb-6 leading-relaxed">

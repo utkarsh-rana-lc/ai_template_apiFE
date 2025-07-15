@@ -124,7 +124,7 @@ const MainApp: React.FC = () => {
 
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Product-Aware Template Generator
+              Product and Context-Aware Template Generator
             </h1>
             <p className="text-gray-600 mb-8">
               Generate personalized WhatsApp templates for specific products with AI
