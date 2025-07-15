@@ -127,26 +127,31 @@ export default async (request, context) => {
 };
 
 function buildProductAwarePrompt(product, goal, tone, language, variables, customPrompt, addButtons, buttonConfig) {
-  // CRITICAL: Only use exactly the variables provided, no more, no less
-  let variableDefinitions = '';
-  let variableList = '';
-  let variableInstructions = '';
+  // BULLETPROOF VARIABLE VALIDATION
+  const maxVariables = variables.length;
+  const approvedVariables = variables.map((_, i) => `{{${i+1}}}`);
   
-  if (variables.length === 0) {
-    // No variables selected - generate content without any variables
-    variableDefinitions = 'NO VARIABLES SELECTED - Do not use any {{}} placeholders';
-    variableList = 'NONE';
-    variableInstructions = 'CRITICAL: Do NOT use any {{1}}, {{2}} or any variable placeholders. Generate plain text content only.';
+  let variableSection = '';
+  if (maxVariables === 0) {
+    variableSection = `
+CRITICAL: NO VARIABLES SELECTED
+- Do NOT use any {{1}}, {{2}}, {{3}} or ANY variable placeholders
+- Generate PLAIN TEXT content only
+- Any use of {{}} will result in IMMEDIATE REJECTION
+- Example: "Your Rice Face Wash is ready!" NOT "{{1}}, your Rice Face Wash is ready!"`;
   } else {
-    // Use exactly the selected variables
-    variableDefinitions = variables.map((v, i) => `- {{${i+1}}} → ${v}`).join('\n');
-    variableList = variables.map((_, i) => `{{${i+1}}}`).join(', ');
-    variableInstructions = `CRITICAL VARIABLE RULES:
-- You MUST use EXACTLY these ${variables.length} variables: ${variableList}
-- Do NOT create additional variables like {{${variables.length + 1}}}, {{${variables.length + 2}}} etc.
-- Each variable must appear at least once in the message
-- Do NOT use any variables not in this list: ${variableList}
-- If you use a variable not in the approved list, the template will be REJECTED`;
+    const variableList = variables.map((v, i) => `{{${i+1}}} = ${v}`).join(', ');
+    variableSection = `
+CRITICAL VARIABLE RESTRICTIONS:
+- MAXIMUM ${maxVariables} variables allowed: ${approvedVariables.join(', ')}
+- Variable mapping: ${variableList}
+- You CANNOT use {{${maxVariables + 1}}}, {{${maxVariables + 2}}} or any higher numbers
+- You CANNOT create new variables beyond the approved list
+- Each approved variable MUST be used at least once
+- Using unauthorized variables = IMMEDIATE TEMPLATE REJECTION
+
+APPROVED VARIABLES ONLY: ${approvedVariables.join(', ')}
+FORBIDDEN: Any variable not in the above list`;
   }
   
   const contextualGuidance = getProductContextualGuidance(goal, product);
@@ -166,27 +171,13 @@ function buildProductAwarePrompt(product, goal, tone, language, variables, custo
 PRODUCT INFORMATION:
 - Name: ${product.name}
 - Description: ${product.description}
-- Context: ${contextualGuidance.context}
 
 TEMPLATE REQUIREMENTS:
 - Use Case: ${goal}
 - Tone: ${tone} (${toneGuidance})
 - Language: ${language} (${languageGuidance})
-- Target: ${contextualGuidance.audience}
 
-VARIABLES TO INCLUDE:
-${variableDefinitions}
-
-${variableInstructions}
-
-VARIABLE USAGE EXAMPLES (ONLY if variables are selected):
-${variables.length > 0 ? `
-- {{1}} for ${variables[0]} in greeting
-${variables.length > 1 ? `- {{2}} for ${variables[1]} in body` : ''}
-${variables.length > 2 ? `- {{3}} for ${variables[2]} in context` : ''}
-${variables.length > 3 ? `- {{4}} for ${variables[3]} in details` : ''}
-${variables.length > 4 ? `- {{5}} for ${variables[4]} in closing` : ''}
-` : 'NO VARIABLES - Generate plain text content only'}
+${variableSection}
 
 CUSTOM INSTRUCTIONS:
 ${customPrompt || 'None'}
@@ -194,106 +185,154 @@ ${customPrompt || 'None'}
 ${buttonInstructions}
 
 CRITICAL FORMATTING REQUIREMENTS:
-- MUST include 4-6 relevant emojis strategically placed throughout
+- Include 3-5 relevant emojis strategically placed
 - MUST use proper line breaks (\\n\\n for paragraph separation)
 - MUST be under 1000 characters total (WhatsApp limit)
-- MUST sound natural and ${tone.toLowerCase()}, NOT robotic
-- MUST highlight ${product.name} benefits from description
-- MUST create appropriate urgency for ${goal}
-- MUST follow Meta's WhatsApp Business guidelines
-- MUST use ONLY the approved variables: ${variableList}
-- MUST include product-specific details and benefits
-- MUST NOT create or use variables not in the approved list
+- Sound natural and ${tone.toLowerCase()}, NOT robotic
+- Highlight ${product.name} benefits from description
+- Create appropriate urgency for ${goal}
+- Follow Meta's WhatsApp Business guidelines
+- Include product-specific details and benefits
 
-CONTENT STRUCTURE:
-Generate a single flowing message that includes:
-1. ${variables.length > 0 ? `Personalized greeting with {{1}} (${variables[0]}) and relevant emoji` : 'Generic greeting with relevant emoji'}
-2. Context about ${product.name} and situation
-3. Product benefits from description with emojis
-4. ${variables.length > 1 ? `Include other variables naturally: ${variables.slice(1).map((v, i) => `{{${i+2}}} (${v})`).join(', ')}` : 'No additional variables to include'}
-5. Call to action appropriate for ${goal}
-6. Closing with brand voice and emoji
-
-${variables.length > 0 ? `VARIABLE INTEGRATION EXAMPLES (use ONLY these patterns):
-${variables.length === 1 ? `- "Hi {{1}}, your ${product.name} is ready!"` : ''}
-${variables.length === 2 ? `- "Hi {{1}}, your {{2}} is ready!"` : ''}
-${variables.length === 3 ? `- "Hi {{1}}, your {{2}} order {{3}} is ready!"` : ''}
-${variables.length >= 4 ? `- "Hi {{1}}, get {{4}} off on {{2}} with code {{3}}!"` : ''}
-` : 'NO VARIABLE EXAMPLES - Generate plain text only'}
+${maxVariables > 0 ? `
+VARIABLE USAGE PATTERNS (MANDATORY):
+${maxVariables === 1 ? `- Start with: "Hi {{1}}, your ${product.name}..."` : ''}
+${maxVariables === 2 ? `- Pattern: "Hi {{1}}, your {{2}} is..."` : ''}
+${maxVariables === 3 ? `- Pattern: "Hi {{1}}, your {{2}} order {{3}}..."` : ''}
+${maxVariables >= 4 ? `- Pattern: "Hi {{1}}, your {{2}} with {{3}} expires {{4}}..."` : ''}
+` : ''}
 
 FINAL VALIDATION CHECKLIST:
-- ✅ Used exactly ${variables.length} variables (no more, no less)
-- ✅ Variables used: ${variableList}
-- ✅ No unauthorized variables created
+- ✅ Used exactly ${maxVariables} variables (no more, no less)
+- ✅ Only used approved variables: ${approvedVariables.join(', ')}
+- ✅ No unauthorized variables like {{${maxVariables + 1}}}, {{${maxVariables + 2}}} etc.
 - ✅ Product name "${product.name}" mentioned
 - ✅ Product benefits included
 - ✅ Under 1000 characters
-- ✅ 4-6 emojis included
+- ✅ 3-5 emojis included
 - ✅ Proper line breaks used
 
-Generate ONLY the message content as a single flowing text. No sections, no formatting markers, just the WhatsApp message content that uses EXACTLY the specified variables.`;
+Generate ONLY the WhatsApp message content. Use EXACTLY ${maxVariables} variables: ${approvedVariables.join(', ')}`;
 }
 
 function parseTemplateResponse(content, productName, variables) {
-  // Clean and validate the content
   const cleanContent = content.trim();
-  
-  // CRITICAL: Validate that only approved variables are used
+  const maxVariables = variables.length;
   const approvedVariables = variables.map((_, i) => `{{${i+1}}}`);
+  
+  // BULLETPROOF VALIDATION: Check for unauthorized variables
   const variableRegex = /\{\{\d+\}\}/g;
   const foundVariables = cleanContent.match(variableRegex) || [];
+  const uniqueFoundVariables = [...new Set(foundVariables)];
   
-  // Check for unauthorized variables
-  const unauthorizedVars = foundVariables.filter(v => !approvedVariables.includes(v));
+  console.log(`Product: ${productName}`);
+  console.log(`Max variables allowed: ${maxVariables}`);
+  console.log(`Approved variables: ${approvedVariables.join(', ')}`);
+  console.log(`Found variables: ${uniqueFoundVariables.join(', ')}`);
+  
+  // Find unauthorized variables
+  const unauthorizedVars = uniqueFoundVariables.filter(v => !approvedVariables.includes(v));
+  
   if (unauthorizedVars.length > 0) {
-    console.warn(`Unauthorized variables found: ${unauthorizedVars.join(', ')}`);
-    // Remove unauthorized variables
+    console.error(`❌ UNAUTHORIZED VARIABLES DETECTED for ${productName}:`);
+    console.error(`Unauthorized: ${unauthorizedVars.join(', ')}`);
+    console.error(`Only allowed: ${approvedVariables.join(', ')}`);
+    
+    // REMOVE unauthorized variables completely
     let sanitizedContent = cleanContent;
     unauthorizedVars.forEach(unauthorizedVar => {
-      sanitizedContent = sanitizedContent.replace(new RegExp(unauthorizedVar.replace(/[{}]/g, '\\$&'), 'g'), '[REMOVED]');
+      const regex = new RegExp(unauthorizedVar.replace(/[{}]/g, '\\$&'), 'g');
+      sanitizedContent = sanitizedContent.replace(regex, '[VARIABLE_REMOVED]');
     });
+    
+    console.log(`✅ Sanitized content: ${sanitizedContent}`);
+    
+    // Use sanitized content
+    const finalContent = sanitizedContent;
+    
+    // Create variable mapping for ONLY approved variables
+    const variableMap = {};
+    variables.forEach((variable, index) => {
+      variableMap[`{{${index + 1}}}`] = variable;
+    });
+    
+    return {
+      product: productName,
+      content: finalContent,
+      variables: variableMap
+    };
   }
   
-  // Create variable mapping based on ONLY provided variables
+  // Validate variable count
+  if (maxVariables > 0 && uniqueFoundVariables.length !== maxVariables) {
+    console.warn(`⚠️ Variable count mismatch for ${productName}:`);
+    console.warn(`Expected: ${maxVariables}, Found: ${uniqueFoundVariables.length}`);
+  }
+  
+  // Create variable mapping for approved variables only
   const variableMap = {};
   variables.forEach((variable, index) => {
     variableMap[`{{${index + 1}}}`] = variable;
   });
   
-  // Return the content as a single body (no header/footer splitting)
-  const finalContent = unauthorizedVars.length > 0 ? sanitizedContent : cleanContent;
+  console.log(`✅ Valid template generated for ${productName}`);
   
   return {
     product: productName,
-    content: finalContent,
+    content: cleanContent,
     variables: variableMap
   };
 }
 
 function createFallbackTemplate(product, goal, tone, variables) {
-  // Create fallback that respects the exact number of variables selected
+  console.log(`Creating fallback template for ${product.name} with ${variables.length} variables`);
+  
+  // BULLETPROOF fallback that uses EXACTLY the selected variables
   const variableMap = {};
   variables.forEach((variable, index) => {
     variableMap[`{{${index + 1}}}`] = variable;
   });
   
-  // Generate fallback content based on number of variables
+  // Generate fallback content using EXACTLY the selected variables
   let fallbackContent = '';
+  const maxVars = variables.length;
   
-  if (variables.length === 0) {
+  if (maxVars === 0) {
     // No variables - plain text
-    fallbackContent = `Your ${product.name} is waiting for you! 🌟\n\n${product.description}\n\nComplete your purchase now and get amazing results! ✨\n\nDon't miss out on this deal! 💫`;
-  } else if (variables.length === 1) {
+    fallbackContent = `Your ${product.name} is waiting for you! 🌟\n\n${product.description.substring(0, 100)}...\n\nComplete your purchase now! ✨\n\nDon't miss out! 💫`;
+  } else if (maxVars === 1) {
     // One variable only
-    fallbackContent = `${variables[0] === 'Customer Name' ? '{{1}}' : 'Hi there'}, your ${product.name} is waiting! 🌟\n\n${product.description}\n\nComplete your purchase now! ✨\n\nDon't miss out! 💫`;
-  } else if (variables.length === 2) {
+    fallbackContent = `{{1}}, your ${product.name} is waiting! 🌟\n\n${product.description.substring(0, 80)}...\n\nComplete your purchase now! ✨\n\nDon't miss out! 💫`;
+  } else if (maxVars === 2) {
     // Two variables only
-    fallbackContent = `{{1}}, your {{2}} is waiting! 🌟\n\n${product.description}\n\nComplete your purchase now! ✨\n\nDon't miss out! 💫`;
-  } else {
-    // Multiple variables - use them all
-    const varUsage = variables.map((_, i) => `{{${i+1}}}`).slice(0, Math.min(variables.length, 4));
-    fallbackContent = `${varUsage[0]}, your ${varUsage[1] || product.name} is ready! 🌟\n\n${product.description}\n\n${varUsage[2] ? `Order: ${varUsage[2]}` : 'Complete your purchase now!'} ✨\n\n${varUsage[3] ? `Delivery: ${varUsage[3]}` : 'Don\'t miss out!'} 💫`;
+    fallbackContent = `{{1}}, your {{2}} is waiting! 🌟\n\n${product.description.substring(0, 70)}...\n\nComplete your purchase now! ✨\n\nDon't miss out! 💫`;
+  } else if (maxVars === 3) {
+    // Three variables only
+    fallbackContent = `{{1}}, your {{2}} order {{3}} is ready! 🌟\n\n${product.description.substring(0, 60)}...\n\nComplete your purchase! ✨\n\nDon't miss out! 💫`;
+  } else if (maxVars === 4) {
+    // Four variables only
+    fallbackContent = `{{1}}, your {{2}} with {{3}} expires {{4}}! 🌟\n\n${product.description.substring(0, 50)}...\n\nAct now! ✨\n\nDon't miss out! 💫`;
+  } else if (maxVars === 5) {
+    // Five variables only
+    fallbackContent = `{{1}}, get {{5}} off {{2}}! Order {{3}} delivers {{4}}! 🌟\n\n${product.description.substring(0, 40)}...\n\nAct now! ✨`;
   }
+  
+  // Validate fallback doesn't have unauthorized variables
+  const foundVars = fallbackContent.match(/\{\{\d+\}\}/g) || [];
+  const uniqueFoundVars = [...new Set(foundVars)];
+  const approvedVars = variables.map((_, i) => `{{${i+1}}}`);
+  const unauthorized = uniqueFoundVars.filter(v => !approvedVars.includes(v));
+  
+  if (unauthorized.length > 0) {
+    console.error(`❌ Fallback template has unauthorized variables: ${unauthorized.join(', ')}`);
+    // Remove unauthorized variables from fallback
+    unauthorized.forEach(unauthorizedVar => {
+      const regex = new RegExp(unauthorizedVar.replace(/[{}]/g, '\\$&'), 'g');
+      fallbackContent = fallbackContent.replace(regex, '[REMOVED]');
+    });
+  }
+  
+  console.log(`✅ Fallback template created with ${maxVars} variables: ${approvedVars.join(', ')}`);
   
   return {
     product: product.name,
