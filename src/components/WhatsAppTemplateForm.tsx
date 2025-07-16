@@ -659,7 +659,6 @@ const WhatsAppTemplateForm: React.FC = () => {
               Insert in Body
             </button>
           </div>
-          </div>
         </div>
       )}
     </div>
