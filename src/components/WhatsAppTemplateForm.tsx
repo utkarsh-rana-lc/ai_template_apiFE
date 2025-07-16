@@ -1102,7 +1102,7 @@ const WhatsAppTemplateForm: React.FC = () => {
           </button>
           
           {generatedContent && (
-            <div className="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+            <button
               type="button"
               onClick={regenerateTemplate}
               disabled={isLoading}
@@ -1118,6 +1118,14 @@ const WhatsAppTemplateForm: React.FC = () => {
       {generatedContent && (
         <div className="mt-8 p-6 bg-[#e5ddd5] rounded-lg border border-gray-200">
           <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Generated Template</h3>
+            <button
+              onClick={() => handleEditToggle('main')}
+              className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              {editableContent['main']?.isEditing ? 'Cancel' : 'Edit'}
+            </button>
+          </div>
           
           {/* WhatsApp Preview */}
           <div className="bg-[#e5ddd5] p-4 rounded-lg">
@@ -1226,9 +1234,6 @@ const WhatsAppTemplateForm: React.FC = () => {
                 </div>
               </div>
             </div>
-            >
-              {editableContent['main']?.isEditing ? 'Cancel' : 'Edit'}
-            </button>
           </div>
           
           {/* WhatsApp Message Container */}
@@ -1576,10 +1581,9 @@ const WhatsAppTemplateForm: React.FC = () => {
         }
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
-            </div>
         }
-        </div>
       `}</style>
+    </div>
   );
 };
 
