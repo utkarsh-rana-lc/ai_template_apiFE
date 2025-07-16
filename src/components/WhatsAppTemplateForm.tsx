@@ -76,9 +76,6 @@ const WhatsAppTemplateForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const [carouselCardContents, setCarouselCardContents] = useState<string[]>([]);
-  const [carouselBodyContent, setCarouselBodyContent] = useState<string>('');
-
   const templateTypes = [
     { value: 'Marketing', label: 'Marketing' },
     { value: 'Utility', label: 'Utility' },
