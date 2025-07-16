@@ -2,20 +2,45 @@ import React, { useState } from 'react';
 import { Loader2, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface FormData {
-  category: string;
+  category: string; // This will be the Meta category
+  templateCategory: string; // This will be the new Category field
+  templateType: string; // This will be the new Template Type field
   goal: string;
   language: string;
   tone: string;
   variables: string[];
+  header: string;
+  footer: string;
+  addButtons: boolean;
+  buttonConfig: ButtonConfig;
+}
+
+interface ButtonConfig {
+  type: 'CTA' | 'Quick Reply';
+  subtype?: 'Static URL' | 'Dynamic URL' | 'Copy Code' | 'Phone Number';
+  text: string;
+  url?: string;
+  phone?: string;
 }
 
 const WhatsAppTemplateForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     category: '',
+    templateCategory: '',
+    templateType: '',
     goal: '',
     language: '',
     tone: '',
-    variables: []
+    variables: [],
+    header: '',
+    footer: '',
+    addButtons: false,
+    buttonConfig: {
+      type: 'CTA',
+      subtype: 'Static URL',
+      text: '',
+      url: ''
+    }
   });
 
   const [generatedContent, setGeneratedContent] = useState<string>('');
@@ -27,6 +52,21 @@ const WhatsAppTemplateForm: React.FC = () => {
     { value: 'Marketing', label: 'Marketing' },
     { value: 'Utility', label: 'Utility' },
     { value: 'Authentication', label: 'Authentication' }
+  ];
+
+  const categories = [
+    { value: 'Marketing', label: 'Marketing' },
+    { value: 'Utility', label: 'Utility' },
+    { value: 'Authentication', label: 'Authentication' }
+  ];
+
+  const templateTypeOptions = [
+    { value: 'Text', label: 'Text' },
+    { value: 'Image', label: 'Image' },
+    { value: 'Video', label: 'Video' },
+    { value: 'Document', label: 'Document' },
+    { value: 'Carousel', label: 'Carousel' },
+    { value: 'Limited Time Offer', label: 'Limited Time Offer' }
   ];
 
   const useCases = [
@@ -77,8 +117,16 @@ const WhatsAppTemplateForm: React.FC = () => {
   };
 
   const validateForm = () => {
-    if (!formData.category) {
+    if (!formData.templateCategory) {
+      setError('Please select a category');
+      return false;
+    }
+    if (!formData.templateType) {
       setError('Please select a template type');
+      return false;
+    }
+    if (!formData.category) {
+      setError('Please select a Meta template category');
       return false;
     }
     if (!formData.goal) {
@@ -125,10 +173,16 @@ const WhatsAppTemplateForm: React.FC = () => {
         },
         body: JSON.stringify({
           category: formData.category,
+          template_category: formData.templateCategory,
+          template_type: formData.templateType,
           goal: formData.goal,        // This is the "Use Case" selected in the UI
           tone: formData.tone,
           language: formData.language,
-          variables: formData.variables,   // Array of selected variables like ["Customer Name", "Product Name"]
+          variables: formData.variables,
+          header: formData.header,
+          footer: formData.footer,
+          add_buttons: formData.addButtons,
+          button_config: formData.addButtons ? formData.buttonConfig : null
         }),
       });
 
@@ -179,10 +233,21 @@ const WhatsAppTemplateForm: React.FC = () => {
   const resetForm = () => {
     setFormData({
       category: '',
+      templateCategory: '',
+      templateType: '',
       goal: '',
       language: '',
       tone: '',
-      variables: []
+      variables: [],
+      header: '',
+      footer: '',
+      addButtons: false,
+      buttonConfig: {
+        type: 'CTA',
+        subtype: 'Static URL',
+        text: '',
+        url: ''
+      }
     });
     setGeneratedContent('');
     setError(null);
@@ -212,19 +277,57 @@ const WhatsAppTemplateForm: React.FC = () => {
       </div>
 
       <form onSubmit={(e) => { e.preventDefault(); generateTemplate(); }} className="space-y-6">
+        {/* Category */}
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            Category <span className="text-red-500">*</span>
+          </label>
+          <p className="text-sm text-gray-600 mb-3">Select the category for this template</p>
+          <select
+            value={formData.templateCategory}
+            onChange={(e) => handleInputChange('templateCategory', e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors"
+            required
+          >
+            <option value="">Choose category...</option>
+            {categories.map(cat => (
+              <option key={cat.value} value={cat.value}>{cat.label}</option>
+            ))}
+          </select>
+        </div>
+
         {/* Template Type */}
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">
             Template Type <span className="text-red-500">*</span>
           </label>
-          <p className="text-sm text-gray-600 mb-3">Select the template type (as per Meta)</p>
+          <p className="text-sm text-gray-600 mb-3">Select the type of template</p>
+          <select
+            value={formData.templateType}
+            onChange={(e) => handleInputChange('templateType', e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors"
+            required
+          >
+            <option value="">Choose template type...</option>
+            {templateTypeOptions.map(type => (
+              <option key={type.value} value={type.value}>{type.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Template Type */}
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            Meta Template Category <span className="text-red-500">*</span>
+          </label>
+          <p className="text-sm text-gray-600 mb-3">Select the Meta template category</p>
           <select
             value={formData.category}
             onChange={(e) => handleInputChange('category', e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors"
             required
           >
-            <option value="">Choose template type...</option>
+            <option value="">Choose Meta category...</option>
             {templateTypes.map(type => (
               <option key={type.value} value={type.value}>{type.label}</option>
             ))}
@@ -325,6 +428,118 @@ const WhatsAppTemplateForm: React.FC = () => {
           )}
         </div>
 
+        {/* Header */}
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            Header (Optional)
+          </label>
+          <p className="text-sm text-gray-600 mb-3">Add a header to your template</p>
+          <input
+            type="text"
+            value={formData.header}
+            onChange={(e) => handleInputChange('header', e.target.value)}
+            placeholder="e.g., Special Offer, Important Update"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors"
+          />
+        </div>
+
+        {/* Footer */}
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            Footer (Optional)
+          </label>
+          <p className="text-sm text-gray-600 mb-3">Add a footer to your template</p>
+          <input
+            type="text"
+            value={formData.footer}
+            onChange={(e) => handleInputChange('footer', e.target.value)}
+            placeholder="e.g., Thank you for choosing us, Contact support"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors"
+          />
+        </div>
+
+        {/* Add Buttons Toggle */}
+        <div>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={formData.addButtons}
+              onChange={(e) => handleInputChange('addButtons', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
+            />
+            <span className="text-sm font-medium text-gray-900">Add Buttons to Template?</span>
+          </label>
+
+          {formData.addButtons && (
+            <div className="mt-4 space-y-3 p-3 bg-gray-50 rounded-lg">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Button Type</label>
+                <select
+                  value={formData.buttonConfig.type}
+                  onChange={(e) => handleInputChange('buttonConfig', {...formData.buttonConfig, type: e.target.value as 'CTA' | 'Quick Reply'})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  <option value="CTA">CTA</option>
+                  <option value="Quick Reply">Quick Reply</option>
+                </select>
+              </div>
+
+              {formData.buttonConfig.type === 'CTA' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CTA Subtype</label>
+                  <select
+                    value={formData.buttonConfig.subtype}
+                    onChange={(e) => handleInputChange('buttonConfig', {...formData.buttonConfig, subtype: e.target.value as any})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  >
+                    <option value="Static URL">Static URL</option>
+                    <option value="Dynamic URL">Dynamic URL</option>
+                    <option value="Copy Code">Copy Code</option>
+                    <option value="Phone Number">Phone Number</option>
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
+                <input
+                  type="text"
+                  value={formData.buttonConfig.text}
+                  onChange={(e) => handleInputChange('buttonConfig', {...formData.buttonConfig, text: e.target.value})}
+                  placeholder="e.g., Shop Now, Call Us"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+
+              {formData.buttonConfig.type === 'CTA' && formData.buttonConfig.subtype?.includes('URL') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                  <input
+                    type="url"
+                    value={formData.buttonConfig.url || ''}
+                    onChange={(e) => handleInputChange('buttonConfig', {...formData.buttonConfig, url: e.target.value})}
+                    placeholder="https://example.com"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+              )}
+
+              {formData.buttonConfig.type === 'CTA' && formData.buttonConfig.subtype === 'Phone Number' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={formData.buttonConfig.phone || ''}
+                    onChange={(e) => handleInputChange('buttonConfig', {...formData.buttonConfig, phone: e.target.value})}
+                    placeholder="+1234567890"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Error Message */}
         {error && (
           <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -376,13 +591,63 @@ const WhatsAppTemplateForm: React.FC = () => {
 
       {/* Generated Content Display */}
       {generatedContent && (
-        <div className="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Template Content</h3>
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
-              {generatedContent}
-            </pre>
+        <div className="mt-8 p-6 bg-[#e5ddd5] rounded-lg border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">WhatsApp Template Preview</h3>
+          
+          {/* WhatsApp Message Container */}
+          <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto relative">
+            {/* Header Section */}
+            {formData.header && (
+              <div className="bg-gray-100 px-3 py-2 rounded-t-lg border-b border-gray-200">
+                <div className="text-sm font-medium text-gray-900">{formData.header}</div>
+              </div>
+            )}
+            
+            {/* Media Section (if template type is Image/Video) */}
+            {(formData.templateType === 'Image' || formData.templateType === 'Video') && (
+              <div className="bg-black rounded-t-lg h-24 flex items-center justify-center relative">
+                <div className="text-white text-2xl">
+                  {formData.templateType === 'Video' ? '▶' : '🖼️'}
+                </div>
+                {formData.templateType === 'Video' && (
+                  <div className="absolute bottom-1 right-1 text-white text-xs">0:15</div>
+                )}
+              </div>
+            )}
+            
+            {/* Message Content */}
+            <div className="p-3">
+              <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line text-left">
+                {generatedContent}
+              </div>
+              
+              {/* Footer */}
+              {formData.footer && (
+                <div className="mt-3 pt-2 border-t border-gray-100 text-xs text-gray-600">
+                  {formData.footer}
+                </div>
+              )}
+              
+              {/* Timestamp */}
+              <div className="text-xs text-gray-500 text-right mt-2">
+                1:04 AM
+              </div>
+            </div>
           </div>
+          
+          {/* Buttons (Outside message bubble) */}
+          {formData.addButtons && formData.buttonConfig.text && (
+            <div className="mt-2 space-y-1 max-w-sm ml-auto">
+              <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
+                {formData.buttonConfig.text}
+              </button>
+              {formData.buttonConfig.type === 'CTA' && (
+                <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
+                  Copy offer code
+                </button>
+              )}
+            </div>
+          )}
           
           {/* Insert in Body CTA */}
           <div className="mt-6 flex justify-center">
@@ -393,6 +658,7 @@ const WhatsAppTemplateForm: React.FC = () => {
               <CheckCircle className="w-5 h-5" />
               Insert in Body
             </button>
+          </div>
           </div>
         </div>
       )}

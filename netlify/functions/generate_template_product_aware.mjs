@@ -33,7 +33,7 @@ export default async (request, context) => {
 
     if (!body.goal || !body.tone || !body.language) {
       return new Response(JSON.stringify({
-        error: 'Goal, tone, and language are required',
+        error: 'Goal, tone, language, category, and template_type are required',
         success: false
       }), {
         status: 400,
@@ -58,10 +58,14 @@ export default async (request, context) => {
         body.goal,
         body.tone,
         body.language,
+        body.category || 'Marketing',
+        body.template_type || 'Text',
         body.variables || [],
         body.custom_prompt || '',
         body.add_buttons || false,
-        body.button_config || null
+        body.button_config || null,
+        body.regenerate || false,
+        body.timestamp || Date.now()
       );
       
       console.log(`Generating template for ${product.name}`);
@@ -80,10 +84,10 @@ export default async (request, context) => {
             }
           ],
           max_tokens: 400,
-          temperature: 0.8,
+          temperature: body.regenerate ? 0.9 : 0.8, // Higher creativity for regeneration
           top_p: 0.9,
           frequency_penalty: 0.3,
-          presence_penalty: 0.4
+          presence_penalty: body.regenerate ? 0.6 : 0.4 // More variation for regeneration
         });
         
         const content = response.choices[0].message.content.trim();
@@ -126,7 +130,7 @@ export default async (request, context) => {
   }
 };
 
-function buildProductAwarePrompt(product, goal, tone, language, variables, customPrompt, addButtons, buttonConfig) {
+function buildProductAwarePrompt(product, goal, tone, language, category, templateType, variables, customPrompt, addButtons, buttonConfig, isRegeneration = false, timestamp = Date.now()) {
   // BULLETPROOF VARIABLE VALIDATION
   const maxVariables = variables.length;
   const approvedVariables = variables.map((_, i) => `{{${i+1}}}`);
@@ -158,6 +162,15 @@ FORBIDDEN: Any variable not in the above list`;
   const toneGuidance = getToneGuidance(tone);
   const languageGuidance = getLanguageGuidance(language);
   
+  const regenerationNote = isRegeneration ? `
+REGENERATION REQUEST (TIMESTAMP: ${timestamp}):
+- This is a REGENERATION - create COMPLETELY DIFFERENT content
+- Use FRESH language, different structure, new emojis
+- AVOID repeating previous patterns or phrases
+- Be MORE CREATIVE and VARIED in your approach
+- Generate UNIQUE content that feels completely new
+` : '';
+  
   let buttonInstructions = '';
   if (addButtons && buttonConfig) {
     buttonInstructions = `\nBUTTON REQUIREMENTS:
@@ -176,11 +189,15 @@ TEMPLATE REQUIREMENTS:
 - Use Case: ${goal}
 - Tone: ${tone} (${toneGuidance})
 - Language: ${language} (${languageGuidance})
+- Category: ${category}
+- Template Type: ${templateType}
 
 ${variableSection}
 
 CUSTOM INSTRUCTIONS:
 ${customPrompt || 'None'}
+
+${regenerationNote}
 
 ${buttonInstructions}
 

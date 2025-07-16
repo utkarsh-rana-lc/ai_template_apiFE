@@ -70,6 +70,8 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
     text: '',
     url: ''
   });
+  const [category, setCategory] = useState('');
+  const [templateType, setTemplateType] = useState('');
 
   const [generatedTemplates, setGeneratedTemplates] = useState<GeneratedTemplate[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -95,6 +97,17 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
   ];
 
   const languages = ['English', 'Hindi'];
+
+  const categories = ['Marketing', 'Utility', 'Authentication'];
+  
+  const templateTypes = [
+    'Text',
+    'Image', 
+    'Video',
+    'Document',
+    'Carousel',
+    'Limited Time Offer'
+  ];
 
   const availableVariables = [
     'Customer Name',
@@ -136,8 +149,8 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
   };
 
   const generateTemplates = async () => {
-    if (!selectedProducts.length || !useCase || !tone || !language) {
-      alert('Please fill in all required fields and select at least one product');
+    if (!selectedProducts.length || !useCase || !tone || !language || !category || !templateType) {
+      alert('Please fill in all required fields including Category and Template Type, and select at least one product');
       return;
     }
 
@@ -153,6 +166,8 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
         goal: useCase,
         tone,
         language,
+        category,
+        template_type: templateType,
         variables,
         custom_prompt: customPrompt,
         add_buttons: addButtons,
@@ -254,82 +269,89 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
     setRegeneratingProduct(productName);
 
     try {
-      // Call the actual API for regeneration
-      const payload = {
-        products: [product],
+      console.log(`🔄 Starting regeneration for ${productName}`);
+      
+      const regenerationPayload = {
+        products: [{
+          name: product.name,
+          description: product.description,
+          image_url: product.image_url
+        }],
         goal: useCase,
         tone,
         language,
         variables,
+        category,
+        template_type: templateType,
         custom_prompt: customPrompt,
         add_buttons: addButtons,
         button_config: addButtons ? buttonConfig : null,
-        regenerate: true // Flag to indicate this is a regeneration
+        regenerate: true,
+        timestamp: Date.now() // Force fresh generation
       };
 
-      console.log(`Regenerating template for ${productName}:`, payload);
+      console.log(`📤 Regeneration payload:`, regenerationPayload);
 
       const response = await fetch('/.netlify/functions/generate_template_product_aware', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(regenerationPayload)
       });
 
+      console.log(`📥 Regeneration response status: ${response.status}`);
+
       if (response.ok) {
-        const templates = await response.json();
-        console.log('Regeneration API Response:', templates);
+        const result = await response.json();
+        console.log(`✅ Regeneration API success:`, result);
         
-        if (templates && templates.length > 0) {
-          const regeneratedTemplate = templates[0];
+        if (result && Array.isArray(result) && result.length > 0) {
+          const regeneratedTemplate = result[0];
           
-          // Validate and update the specific template
-          const validatedTemplate = {
+          const newTemplate = {
             product: regeneratedTemplate.product,
             content: regeneratedTemplate.content || regeneratedTemplate.body || '',
             variables: regeneratedTemplate.variables || {}
           };
           
+          console.log(`🔄 Updating template for ${productName}:`, newTemplate);
+          
           setGeneratedTemplates(prev =>
-            prev.map(t => t.product === productName ? validatedTemplate : t)
+            prev.map(t => t.product === productName ? newTemplate : t)
           );
           
-          console.log(`✅ Successfully regenerated template for ${productName}`);
+          console.log(`✅ Template updated successfully for ${productName}`);
+        } else {
+          throw new Error('Invalid response format from API');
         }
       } else {
-        throw new Error(`API returned ${response.status}`);
+        const errorText = await response.text();
+        console.error(`❌ API Error ${response.status}:`, errorText);
+        throw new Error(`API returned ${response.status}: ${errorText}`);
       }
     } catch (error) {
-      console.error('Error regenerating template:', error);
+      console.error(`❌ Regeneration error for ${productName}:`, error);
       
-      // Enhanced fallback with better randomization
+      // Create enhanced fallback with randomization
       const variableMap: Record<string, string> = {};
       variables.forEach((variable, index) => {
         variableMap[`{{${index + 1}}}`] = variable;
       });
       
-      // Create multiple fallback variations for better regeneration
-      const fallbackVariations = [
-        {
-          0: `Your ${productName} is waiting! 🌟\n\n${product.description}\n\nComplete your purchase now! ✨\n\nDon't miss out! 💫`,
-          1: `{{1}}, your ${productName} is ready! 🎉\n\n${product.description}\n\nGet it now! ✨\n\nLimited time offer! 🔥`,
-          2: `{{1}}, your {{2}} is calling! 📞\n\n${product.description}\n\nOrder now! ✨\n\nSpecial deal! 💎`
-        },
-        {
-          0: `🔥 ${productName} back in stock!\n\n${product.description}\n\nOrder before it's gone! ⚡\n\nAct fast! 🚀`,
-          1: `{{1}}, don't miss ${productName}! 🎯\n\n${product.description}\n\nLimited quantity! ⏰\n\nSecure yours! 💪`,
-          2: `{{1}}, your {{2}} awaits! 👑\n\n${product.description}\n\nExclusive offer! 🎁\n\nClaim now! ✨`
-        },
-        {
-          0: `✨ ${productName} special offer!\n\n${product.description}\n\nDon't wait! 🏃‍♀️\n\nGet yours today! 🛒`,
-          1: `{{1}}, ${productName} is perfect for you! 💖\n\n${product.description}\n\nTreat yourself! 🌟\n\nOrder now! 🎉`,
-          2: `{{1}}, your {{2}} journey starts here! 🚀\n\n${product.description}\n\nBegin today! ✨\n\nTransform now! 💫`
-        }
+      const fallbackOptions = [
+        `🌟 ${productName} is calling your name!\n\n${product.description.substring(0, 80)}...\n\nDon't wait - grab yours now! ✨`,
+        `✨ Ready for ${productName}?\n\n${product.description.substring(0, 80)}...\n\nLimited stock available! 🔥`,
+        `💫 ${productName} - your perfect match!\n\n${product.description.substring(0, 80)}...\n\nOrder today! 🛒`
       ];
       
-      // Select random variation
-      const randomVariation = fallbackVariations[Math.floor(Math.random() * fallbackVariations.length)];
-      const variableCount = Math.min(variables.length, 2); // Cap at 2 for fallback
-      const fallbackContent = randomVariation[variableCount as keyof typeof randomVariation] || randomVariation[0];
+      let fallbackContent = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)];
+      
+      // Add variables if selected
+      if (variables.length > 0) {
+        fallbackContent = `{{1}}, ` + fallbackContent;
+      }
+      if (variables.length > 1) {
+        fallbackContent = fallbackContent.replace(productName, '{{2}}');
+      }
       
       const fallbackTemplate: GeneratedTemplate = {
         product: productName,
@@ -337,7 +359,7 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
         variables: variableMap
       };
       
-      setGeneratedTemplates(prev =>
+      setGeneratedTemplates(prev => 
         prev.map(t => t.product === productName ? fallbackTemplate : t)
       );
       
@@ -440,6 +462,40 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
         {/* Left Column - Form */}
         <div className="p-6 overflow-y-auto bg-white border-r border-gray-200">
           <div className="max-w-lg space-y-4">
+            {/* Category */}
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Category <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select category...</option>
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Template Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Template Type <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={templateType}
+                onChange={(e) => setTemplateType(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select template type...</option>
+                {templateTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Product Selector */}
             <div>
               <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -677,7 +733,7 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
             {/* Generate Button */}
             <button
               onClick={generateTemplates}
-              disabled={isGenerating || !selectedProducts.length || !useCase || !tone || !language}
+             disabled={isGenerating || !selectedProducts.length || !useCase || !tone || !language || !category || !templateType}
               className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               {isGenerating ? (
