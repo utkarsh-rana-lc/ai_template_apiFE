@@ -636,14 +636,19 @@ const WhatsAppTemplateForm: React.FC = () => {
           </div>
           
           {/* Buttons (Outside message bubble) */}
-          {formData.addButtons && formData.buttonConfig.text && (
+          {formData.addButtons && formData.buttonConfig && formData.buttonConfig.text && (
             <div className="mt-2 space-y-1 max-w-sm ml-auto">
               <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
                 {formData.buttonConfig.text}
               </button>
-              {formData.buttonConfig.type === 'CTA' && (
+              {formData.buttonConfig.type === 'CTA' && formData.buttonConfig.subtype === 'Copy Code' && (
                 <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
-                  Copy offer code
+                  Copy Code
+                </button>
+              )}
+              {formData.buttonConfig.type === 'CTA' && formData.buttonConfig.subtype === 'Phone Number' && (
+                <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
+                  📞 Call Now
                 </button>
               )}
             </div>

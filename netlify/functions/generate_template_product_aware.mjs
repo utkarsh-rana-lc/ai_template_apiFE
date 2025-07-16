@@ -142,7 +142,7 @@ CRITICAL: NO VARIABLES SELECTED
 - Do NOT use any {{1}}, {{2}}, {{3}} or ANY variable placeholders
 - Generate PLAIN TEXT content only
 - Any use of {{}} will result in IMMEDIATE REJECTION
-- Example: "Your Rice Face Wash is ready!" NOT "{{1}}, your Rice Face Wash is ready!"`;
+- Create engaging, personalized content without variable placeholders`;
   } else {
     const variableList = variables.map((v, i) => `{{${i+1}}} = ${v}`).join(', ');
     variableSection = `
@@ -173,17 +173,33 @@ REGENERATION REQUEST (TIMESTAMP: ${timestamp}):
   
   let buttonInstructions = '';
   if (addButtons && buttonConfig) {
-    buttonInstructions = `\nBUTTON REQUIREMENTS:
-- Add a ${buttonConfig.type} button with text: "${buttonConfig.text}"
-- Button should be relevant to the ${goal} context
-- Include button in the BUTTONS section of your response`;
+    buttonInstructions = `
+BUTTON CONFIGURATION:
+- Button Type: ${buttonConfig.type}
+- Button Text: "${buttonConfig.text}"
+- Button Subtype: ${buttonConfig.subtype || 'N/A'}
+- URL: ${buttonConfig.url || 'N/A'}
+- Phone: ${buttonConfig.phone || 'N/A'}
+
+IMPORTANT: Do NOT include button text in the message body. Buttons are separate UI elements.
+The message should flow naturally and encourage the action that the button will provide.`;
   }
 
-  return `You are creating a WhatsApp Business template for a specific product. Generate engaging, emoji-rich content that follows Meta's guidelines.
+  let customInstructions = '';
+  if (customPrompt && customPrompt.trim()) {
+    customInstructions = `
+CUSTOM INSTRUCTIONS FROM USER:
+"${customPrompt}"
+
+CRITICAL: Incorporate these custom instructions throughout your content creation. These are specific brand guidelines or requirements that MUST be followed.`;
+  }
+
+  return `You are the world's top marketing content writer creating a WhatsApp Business template for a specific product. This template must be exceptional, engaging, and drive outstanding results.
 
 PRODUCT INFORMATION:
 - Name: ${product.name}
 - Description: ${product.description}
+- Image: Available for visual context
 
 TEMPLATE REQUIREMENTS:
 - Use Case: ${goal}
@@ -194,29 +210,44 @@ TEMPLATE REQUIREMENTS:
 
 ${variableSection}
 
-CUSTOM INSTRUCTIONS:
-${customPrompt || 'None'}
+${customInstructions}
 
 ${regenerationNote}
 
 ${buttonInstructions}
 
-CRITICAL FORMATTING REQUIREMENTS:
-- Include 3-5 relevant emojis strategically placed
-- MUST use proper line breaks (\\n\\n for paragraph separation)
-- MUST be under 1000 characters total (WhatsApp limit)
-- Sound natural and ${tone.toLowerCase()}, NOT robotic
-- Highlight ${product.name} benefits from description
-- Create appropriate urgency for ${goal}
-- Follow Meta's WhatsApp Business guidelines
-- Include product-specific details and benefits
+WORLD-CLASS CONTENT REQUIREMENTS:
+1. PERFECT SALUTATION: Start with an engaging, warm greeting that creates immediate connection
+2. PRODUCT FOCUS: Highlight ${product.name} and its key benefits from the description
+3. EMOTIONAL ENGAGEMENT: Create desire and connection with the product
+4. VALUE PROPOSITION: Clearly communicate why they need this product
+5. STRATEGIC EMOJI USAGE: Use 4-6 relevant emojis that enhance the message
+6. PROPER FORMATTING: Use line breaks (\\n\\n) for paragraph separation
+7. COMPELLING NARRATIVE: Tell a story that resonates with ${goal}
+8. CALL TO ACTION: Create urgency and desire for immediate action
+
+CONTENT STRUCTURE (MANDATORY):
+1. ENGAGING SALUTATION (personalized greeting with emoji)
+2. PRODUCT HOOK (grab attention with product benefit)
+3. VALUE PROPOSITION (what's in it for them)
+4. PRODUCT DETAILS (highlight key benefits from description)
+5. URGENCY/SCARCITY (create action motivation)
+6. CLEAR NEXT STEP (guide toward desired action)
+
+QUALITY STANDARDS:
+- Every sentence must be purposeful and engaging
+- Content must feel personal and product-specific
+- Tone must be consistent and ${tone.toLowerCase()}
+- Message should build momentum toward action
+- Must highlight specific product benefits
+- Should create emotional connection to the product
 
 ${maxVariables > 0 ? `
 VARIABLE USAGE PATTERNS (MANDATORY):
-${maxVariables === 1 ? `- Start with: "Hi {{1}}, your ${product.name}..."` : ''}
-${maxVariables === 2 ? `- Pattern: "Hi {{1}}, your {{2}} is..."` : ''}
-${maxVariables === 3 ? `- Pattern: "Hi {{1}}, your {{2}} order {{3}}..."` : ''}
-${maxVariables >= 4 ? `- Pattern: "Hi {{1}}, your {{2}} with {{3}} expires {{4}}..."` : ''}
+${maxVariables === 1 ? `- Start with personalized greeting: "Hi {{1}}, [engaging hook about ${product.name}]..."` : ''}
+${maxVariables === 2 ? `- Pattern: "Hi {{1}}, your {{2}} [compelling message about ${product.name}]..."` : ''}
+${maxVariables === 3 ? `- Pattern: "Hi {{1}}, your {{2}} order {{3}} [engaging content about ${product.name}]..."` : ''}
+${maxVariables >= 4 ? `- Use all variables naturally throughout the message flow` : ''}
 ` : ''}
 
 FINAL VALIDATION CHECKLIST:
@@ -225,13 +256,17 @@ FINAL VALIDATION CHECKLIST:
 - ✅ No unauthorized variables like {{${maxVariables + 1}}}, {{${maxVariables + 2}}} etc.
 - ✅ Product name "${product.name}" mentioned
 - ✅ Product benefits included
+- ✅ Engaging salutation that builds connection
+- ✅ Compelling content that drives action
 - ✅ Under 1000 characters
-- ✅ 3-5 emojis included
+- ✅ 4-6 strategic emojis included
 - ✅ Proper line breaks used
+- ✅ Perfect ${tone.toLowerCase()} tone throughout
+- ✅ Custom instructions incorporated (if provided)
 
 ${regenerationNote}
 
-Generate ONLY the WhatsApp message content. Use EXACTLY ${maxVariables} variables: ${approvedVariables.join(', ')}`;
+Generate ONLY the WhatsApp message body content. Make it exceptional - this template represents a premium brand and must drive outstanding results for ${product.name}.`;
 }
 
 function parseTemplateResponse(content, productName, variables) {
