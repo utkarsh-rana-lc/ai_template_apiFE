@@ -205,7 +205,7 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
 
       console.log('Generating templates with payload:', payload);
 
-      const response = await fetch('/.netlify/functions/generate_template_product_aware', {
+      const response = await fetch('/api/generate_template_product_aware', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -322,7 +322,7 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
 
       console.log(`📤 Regeneration payload:`, regenerationPayload);
 
-      const response = await fetch('/.netlify/functions/generate_template_product_aware', {
+      const response = await fetch('/api/generate_template_product_aware', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(regenerationPayload)
