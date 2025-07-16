@@ -202,16 +202,6 @@ const WhatsAppTemplateForm: React.FC = () => {
     });
   };
 
-  const handleFileUpload = (file: File, type: 'video' | 'image' | 'document') => {
-    if (type === 'video') {
-      setVideoFile(file);
-    } else if (type === 'image') {
-      setImageFile(file);
-    } else if (type === 'document') {
-      setDocumentFile(file);
-    }
-  };
-
   const validateForm = () => {
     if (!formData.category) {
       setError('Please select a category');
