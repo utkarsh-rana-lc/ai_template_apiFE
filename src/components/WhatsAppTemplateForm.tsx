@@ -5,6 +5,7 @@ interface FormData {
   category: string; // This will be the Meta category
   templateType: string; // This will be the new Template Type field
   carouselCards: string;
+  carouselType: string;
   isLTO: boolean;
   ltoTitle: string;
   ltoExpirationDate: string;
@@ -40,6 +41,7 @@ const WhatsAppTemplateForm: React.FC = () => {
     category: '',
     templateType: '',
     carouselCards: '2',
+    carouselType: 'image',
     isLTO: false,
     ltoTitle: '',
     ltoExpirationDate: '',
@@ -66,6 +68,9 @@ const WhatsAppTemplateForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const [carouselCardContents, setCarouselCardContents] = useState<string[]>([]);
+  const [carouselBodyContent, setCarouselBodyContent] = useState<string>('');
 
   const templateTypes = [
     { value: 'Marketing', label: 'Marketing' },
@@ -228,6 +233,9 @@ const WhatsAppTemplateForm: React.FC = () => {
           category: formData.category,
           templateType: formData.templateType,
           carouselCards: formData.carouselCards,
+          carouselType: formData.carouselType,
+          carouselBodyContent: carouselBodyContent,
+          carouselCardContents: carouselCardContents,
           isLTO: formData.isLTO,
           ltoTitle: formData.ltoTitle,
           ltoExpirationDate: formData.ltoExpirationDate,
@@ -260,14 +268,15 @@ const WhatsAppTemplateForm: React.FC = () => {
         if (formData.templateType === 'Carousel') {
           // Handle carousel content
           const cardCount = parseInt(formData.carouselCards);
+          if (data.content) {
+            setCarouselBodyContent(data.content);
+          }
           if (data.carouselCards && Array.isArray(data.carouselCards)) {
-            setCarouselContent(data.carouselCards);
+            setCarouselCardContents(data.carouselCards);
           } else {
             // Generate individual cards if not provided
-            const cards = Array.from({ length: cardCount }, (_, i) => 
-              `Card ${i + 1}: ${data.content.substring(0, 100)}...`
-            );
-            setCarouselContent(cards);
+            const cards = Array.from({ length: cardCount }, (_, i) => `Card ${i + 1} content`);
+            setCarouselCardContents(cards);
           }
         } else {
           setGeneratedContent(data.content);
@@ -297,7 +306,7 @@ const WhatsAppTemplateForm: React.FC = () => {
         const mockCards = Array.from({ length: cardCount }, (_, i) => 
           `Card ${i + 1}: ${mockTemplates[formData.goal as keyof typeof mockTemplates] || 'Sample content'}`
         );
-        setCarouselContent(mockCards);
+        setCarouselCardContents(mockCards);
       } else {
         const mockContent = mockTemplates[formData.goal as keyof typeof mockTemplates] || 
           `Hi {{1}}, thank you for your interest in {{2}}. We'll get back to you soon!`;
@@ -316,6 +325,7 @@ const WhatsAppTemplateForm: React.FC = () => {
       category: '',
       templateType: '',
       carouselCards: '2',
+      carouselType: 'image',
       isLTO: false,
       ltoTitle: '',
       ltoExpirationDate: '',
@@ -336,7 +346,8 @@ const WhatsAppTemplateForm: React.FC = () => {
       mediaFiles: {}
     });
     setGeneratedContent('');
-    setCarouselContent([]);
+    setCarouselCardContents([]);
+    setCarouselBodyContent('');
     setEditableContent({});
     setError(null);
     setSuccess(false);
@@ -405,21 +416,116 @@ const WhatsAppTemplateForm: React.FC = () => {
 
         {/* Carousel Cards Count */}
         {formData.templateType === 'Carousel' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Number of Cards in Carousel <span className="text-red-500">*</span>
-            </label>
-            <p className="text-sm text-gray-600 mb-3">Select number of cards (2-10)</p>
-            <select
-              value={formData.carouselCards || '2'}
-              onChange={(e) => handleInputChange('carouselCards', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors"
-              required
-            >
-              {[2,3,4,5,6,7,8,9,10].map(num => (
-                <option key={num} value={num}>{num} Cards</option>
-              ))}
-            </select>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Number of Cards in Carousel <span className="text-red-500">*</span>
+              </label>
+              <p className="text-sm text-gray-600 mb-3">Select number of cards (2-10)</p>
+              <select
+                value={formData.carouselCards || '2'}
+                onChange={(e) => {
+                  handleInputChange('carouselCards', e.target.value);
+                  const cardCount = parseInt(e.target.value);
+                  setCarouselCardContents(Array(cardCount).fill(''));
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors"
+                required
+              >
+                {[2,3,4,5,6,7,8,9,10].map(num => (
+                  <option key={num} value={num}>{num} Cards</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Carousel Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Carousel Type <span className="text-red-500">*</span>
+              </label>
+              <p className="text-sm text-gray-600 mb-3">Select media type for carousel cards</p>
+              <select
+                value={formData.carouselType || 'image'}
+                onChange={(e) => handleInputChange('carouselType', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors"
+                required
+              >
+                <option value="image">Image Carousel</option>
+                <option value="video">Video Carousel</option>
+              </select>
+            </div>
+
+            {/* Carousel Video Upload */}
+            {formData.carouselType === 'video' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Carousel Video Upload
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => handleFileUpload('CarouselVideo', e.target.files?.[0] || null)}
+                    className="hidden"
+                    id="carousel-video-upload"
+                  />
+                  <label htmlFor="carousel-video-upload" className="cursor-pointer">
+                    <div className="text-gray-400 mb-2">🎥</div>
+                    <p className="text-sm text-gray-600">Click to upload video for carousel</p>
+                  </label>
+                  {formData.mediaFiles['CarouselVideo'] && (
+                    <p className="text-sm text-green-600 mt-2">
+                      ✅ {formData.mediaFiles['CarouselVideo']?.name}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Carousel Body Content */}
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Carousel Body Content
+              </label>
+              <p className="text-sm text-gray-600 mb-3">Main message that introduces the carousel</p>
+              <textarea
+                value={carouselBodyContent}
+                onChange={(e) => setCarouselBodyContent(e.target.value)}
+                placeholder="e.g., Check out our amazing collection below! Swipe to explore..."
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors resize-none"
+              />
+              <p className="text-xs text-gray-500 mt-1">{carouselBodyContent.length}/200 characters</p>
+            </div>
+
+            {/* Individual Carousel Card Contents */}
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Carousel Card Contents
+              </label>
+              <p className="text-sm text-gray-600 mb-3">Content for each individual card</p>
+              <div className="space-y-3">
+                {Array.from({ length: parseInt(formData.carouselCards || '2') }, (_, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Card {index + 1} Content
+                    </label>
+                    <textarea
+                      value={carouselCardContents[index] || ''}
+                      onChange={(e) => {
+                        const newContents = [...carouselCardContents];
+                        newContents[index] = e.target.value;
+                        setCarouselCardContents(newContents);
+                      }}
+                      placeholder={`Content for card ${index + 1}...`}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">{(carouselCardContents[index] || '').length}/160 characters per card</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -873,22 +979,34 @@ const WhatsAppTemplateForm: React.FC = () => {
             
             {formData.templateType === 'Carousel' && (
               <div className="bg-gray-100 h-20 border-b">
-                <div className="flex overflow-x-auto p-2 space-x-2">
+                <div className="flex overflow-x-auto p-2 space-x-2 scrollbar-hide">
                   {Array.from({length: parseInt(formData.carouselCards || '2')}, (_, i) => (
-                    <div key={i} className="flex-shrink-0 w-12 h-12 bg-white rounded border flex flex-col items-center justify-center">
+                    <div key={i} className="flex-shrink-0 w-16 h-12 bg-white rounded border flex flex-col items-center justify-center relative">
+                      <div className="text-xs text-gray-600">
+                        {formData.carouselType === 'video' ? '🎥' : '🖼️'}
+                      </div>
                       <div className="text-xs text-gray-400">{i + 1}</div>
-                      <div className="text-xs text-gray-600">🖼️</div>
                     </div>
                   ))}
                 </div>
                 <div className="text-xs text-gray-600 text-center pb-1">
-                  {formData.carouselCards || '2'} cards
+                  {formData.carouselCards || '2'} {formData.carouselType || 'image'} cards
                 </div>
               </div>
             )}
             
             {/* Message Content */}
             <div className="p-3">
+              {/* Carousel Body Content */}
+              {formData.templateType === 'Carousel' && carouselBodyContent && (
+                <div className="mb-3 pb-2 border-b border-gray-100">
+                  <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line text-left">
+                    {carouselBodyContent}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">Body: {carouselBodyContent.length}/200 characters</div>
+                </div>
+              )}
+
               {editableContent['main']?.isEditing ? (
                 <div className="space-y-2">
                   <textarea
@@ -976,12 +1094,88 @@ const WhatsAppTemplateForm: React.FC = () => {
       )}
 
       {/* Carousel Content Display */}
-      {formData.templateType === 'Carousel' && carouselContent.length > 0 && (
+      {formData.templateType === 'Carousel' && carouselCardContents.length > 0 && (
         <div className="mt-8 p-6 bg-[#e5ddd5] rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Carousel Cards Preview</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Carousel Preview - {formData.carouselType === 'video' ? 'Video' : 'Image'} Cards
+          </h3>
           
+          {/* Horizontal Scrolling Carousel */}
+          <div className="bg-white rounded-lg p-4 mb-4">
+            <div className="flex overflow-x-auto space-x-4 pb-2 scrollbar-hide">
+              {carouselCardContents.map((cardContent, index) => (
+                <div key={index} className="flex-shrink-0 w-64 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="p-3 border-b border-gray-100 flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900 text-sm">Card {index + 1}</h4>
+                    <button
+                      onClick={() => handleEditToggle(`carousel-${index}`)}
+                      className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                      {editableContent[`carousel-${index}`]?.isEditing ? 'Cancel' : 'Edit'}
+                    </button>
+                  </div>
+                  
+                  <div className="p-3">
+                    {/* Card Media Placeholder */}
+                    <div className="bg-gray-200 h-24 rounded mb-3 flex items-center justify-center">
+                      <span className="text-gray-500 text-sm">
+                        {formData.carouselType === 'video' ? '🎥 Video' : '🖼️ Image'} {index + 1}
+                      </span>
+                    </div>
+                    
+                    {/* Card Content */}
+                    {editableContent[`carousel-${index}`]?.isEditing ? (
+                      <div className="space-y-2">
+                        <textarea
+                          value={editableContent[`carousel-${index}`]?.content || cardContent}
+                          onChange={(e) => setEditableContent(prev => ({
+                            ...prev,
+                            [`carousel-${index}`]: { ...prev[`carousel-${index}`], content: e.target.value }
+                          }))}
+                          className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                          rows={3}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              const newContent = editableContent[`carousel-${index}`]?.content || cardContent;
+                              handleEditSave(`carousel-${index}`, newContent);
+                              // Update the carousel card contents
+                              const newContents = [...carouselCardContents];
+                              newContents[index] = newContent;
+                              setCarouselCardContents(newContents);
+                            }}
+                            className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => handleEditToggle(`carousel-${index}`)}
+                            className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
+                        {editableContent[`carousel-${index}`]?.content || cardContent}
+                      </div>
+                    )}
+                    
+                    {/* Character Count */}
+                    <div className="text-xs text-gray-400 mt-2">
+                      {(editableContent[`carousel-${index}`]?.content || cardContent).length}/160 characters per card
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Individual Card Editing (Alternative Grid View) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {carouselContent.map((cardContent, index) => (
+            {carouselCardContents.map((cardContent, index) => (
               <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200">
                 <div className="p-3 border-b border-gray-100 flex items-center justify-between">
                   <h4 className="font-medium text-gray-900">Card {index + 1}</h4>
@@ -996,7 +1190,9 @@ const WhatsAppTemplateForm: React.FC = () => {
                 <div className="p-3">
                   {/* Card Image Placeholder */}
                   <div className="bg-gray-200 h-24 rounded mb-3 flex items-center justify-center">
-                    <span className="text-gray-500 text-sm">Card {index + 1} Image</span>
+                    <span className="text-gray-500 text-sm">
+                      {formData.carouselType === 'video' ? '🎥 Video' : '🖼️ Image'} {index + 1}
+                    </span>
                   </div>
                   
                   {/* Card Content */}
@@ -1052,6 +1248,17 @@ const WhatsAppTemplateForm: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Add custom CSS for hiding scrollbars */}
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 };

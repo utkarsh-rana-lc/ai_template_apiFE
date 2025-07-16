@@ -76,6 +76,23 @@ You NEVER exceed character limits and ALWAYS follow Meta's exact specifications 
     
     // Handle carousel response
     if (body.templateType === 'Carousel') {
+      // Use user-provided content if available
+      if (body.carouselBodyContent && body.carouselCardContents && body.carouselCardContents.length > 0) {
+        return new Response(JSON.stringify({
+          content: body.carouselBodyContent,
+          carouselCards: body.carouselCardContents,
+          success: true,
+          characterCount: body.carouselBodyContent.length,
+          templateType: body.templateType
+        }), {
+          status: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+      
       try {
         // Try to parse as JSON for carousel cards
         const parsedContent = JSON.parse(content);

@@ -76,7 +76,9 @@ export default async (request, context) => {
           messages: [
             { 
               role: "system", 
-              content: "You are an expert WhatsApp Business template writer specializing in product-specific messaging. Create engaging, personalized templates that highlight product benefits and drive action. Always include strategic emoji usage and proper formatting for WhatsApp." 
+              content: `You are an expert WhatsApp Business template writer specializing in product-specific messaging. Create engaging, personalized templates that highlight product benefits and drive action. Always include strategic emoji usage and proper formatting for WhatsApp.
+            
+            ${body.regenerate ? 'REGENERATION MODE: Create completely different content with fresh language, new structure, different emojis, and varied approach. Avoid repetitive patterns.' : ''}` 
             },
             { 
               role: "user", 
@@ -84,10 +86,10 @@ export default async (request, context) => {
             }
           ],
           max_tokens: 400,
-          temperature: body.regenerate ? 0.9 : 0.8, // Higher creativity for regeneration
+          temperature: body.regenerate ? 1.0 : 0.8, // Much higher creativity for regeneration
           top_p: 0.9,
-          frequency_penalty: 0.3,
-          presence_penalty: body.regenerate ? 0.6 : 0.4 // More variation for regeneration
+          frequency_penalty: body.regenerate ? 0.8 : 0.3, // Much higher penalty for repetition
+          presence_penalty: body.regenerate ? 0.9 : 0.4 // Much more variation for regeneration
         });
         
         const content = response.choices[0].message.content.trim();

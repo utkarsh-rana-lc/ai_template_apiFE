@@ -300,6 +300,7 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
     try {
       console.log(`🔄 Starting regeneration for ${productName}`);
       
+      // Create a completely fresh payload with randomization
       const regenerationPayload = {
         products: [{
           name: product.name,
@@ -316,8 +317,11 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
         custom_prompt: customPrompt,
         add_buttons: addButtons,
         button_config: addButtons ? buttonConfig : null,
-        regenerate: true,
-        timestamp: Date.now() // Force fresh generation
+        regenerate: true, // This tells the API to be more creative
+        timestamp: Date.now(), // Force fresh generation
+        variation_seed: Math.random(), // Add randomness
+        creativity_boost: true, // Request more creative variation
+        avoid_previous: true // Instruct to avoid similar patterns
       };
 
       console.log(`📤 Regeneration payload:`, regenerationPayload);
