@@ -18,9 +18,9 @@ export default async (request, context) => {
     console.log('Template generation request:', body);
     
     // Validate required fields
-    if (!body.category || !body.goal || !body.tone || !body.language || !body.templateType) {
+    if (!body.category || !body.goal || !body.tone || !body.language) {
       return new Response(JSON.stringify({
-        error: 'Missing required fields: category, goal, tone, language, and templateType are required',
+        error: 'Missing required fields: category, goal, tone, language are required',
         success: false
       }), {
         status: 400,
@@ -39,7 +39,7 @@ export default async (request, context) => {
     // Build Meta-compliant prompt
     const prompt = buildMetaCompliantPrompt(body);
     
-    console.log('Generated prompt for template type:', body.templateType);
+    console.log('Generated prompt for template type:', body.templateType || 'Text');
     
     // Generate response with strict parameters for compliance
     const response = await openai.chat.completions.create({
@@ -64,7 +64,7 @@ You NEVER exceed character limits and ALWAYS follow Meta's exact specifications 
           content: prompt 
         }
       ],
-      max_tokens: 200, // Strict limit to ensure under 1024 chars
+      max_tokens: body.templateType === 'Carousel' ? 400 : 200, // More tokens for carousel
       temperature: 0.7,
       top_p: 0.9,
       frequency_penalty: 0.4, // Reduce repetition
@@ -73,6 +73,49 @@ You NEVER exceed character limits and ALWAYS follow Meta's exact specifications 
     
     const content = response.choices[0].message.content.trim();
     console.log('Generated content length:', content.length);
+    
+    // Handle carousel response
+    if (body.templateType === 'Carousel') {
+      try {
+        // Try to parse as JSON for carousel cards
+        const parsedContent = JSON.parse(content);
+        if (parsedContent.cards && Array.isArray(parsedContent.cards)) {
+          return new Response(JSON.stringify({
+            content: parsedContent.intro || 'Browse our collection below:',
+            carouselCards: parsedContent.cards,
+            success: true,
+            characterCount: parsedContent.intro?.length || 0,
+            templateType: body.templateType
+          }), {
+            status: 200,
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Content-Type': 'application/json'
+            }
+          });
+        }
+      } catch (e) {
+        // If not JSON, treat as regular content and generate cards
+        const cardCount = parseInt(body.carouselCards || '2');
+        const cards = Array.from({ length: cardCount }, (_, i) => 
+          `Card ${i + 1}: ${content.substring(0, 100)}...`
+        );
+        
+        return new Response(JSON.stringify({
+          content: content,
+          carouselCards: cards,
+          success: true,
+          characterCount: content.length,
+          templateType: body.templateType
+        }), {
+          status: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+    }
     
     // STRICT character validation
     if (content.length > 1024) {
@@ -96,7 +139,7 @@ You NEVER exceed character limits and ALWAYS follow Meta's exact specifications 
       content: content,
       success: true,
       characterCount: content.length,
-      templateType: body.templateType
+      templateType: body.templateType || 'Text'
     }), {
       status: 200,
       headers: {
@@ -125,8 +168,11 @@ You NEVER exceed character limits and ALWAYS follow Meta's exact specifications 
 function buildMetaCompliantPrompt(data) {
   const {
     category,
-    templateType,
+    templateType = 'Text',
     carouselCards,
+    isLTO,
+    ltoTitle,
+    ltoExpirationDate,
     goal,
     language,
     tone,
@@ -177,6 +223,19 @@ CUSTOM INSTRUCTIONS (CRITICAL):
 - These are brand-specific requirements that MUST be followed`;
   }
 
+  // Build LTO instructions
+  let ltoInstructions = '';
+  if (isLTO && ltoTitle) {
+    ltoInstructions = `
+LIMITED TIME OFFER REQUIREMENTS:
+- This is a LIMITED TIME OFFER template
+- LTO Title: "${ltoTitle}" (already displayed in header)
+- Expiration: ${ltoExpirationDate ? new Date(ltoExpirationDate).toLocaleDateString() : 'Soon'}
+- Create URGENCY and SCARCITY in the message
+- Focus on time-sensitive benefits
+- Drive immediate action before expiration`;
+  }
+
   // Build button instructions based on template type
   let buttonInstructions = '';
   if (addButtons && buttonConfig && buttonConfig.text) {
@@ -205,6 +264,8 @@ ${footer ? `- Footer: "${footer}"` : ''}
 ${variableSection}
 
 ${customInstructions}
+
+${ltoInstructions}
 
 ${useCaseGuidance}
 
@@ -268,12 +329,23 @@ DOCUMENT TEMPLATE SPECIFICATIONS:
     'Carousel': `
 CAROUSEL TEMPLATE SPECIFICATIONS:
 - Multiple cards (${carouselCards || 2}-10 cards maximum)
-- Each card has: image, title (max 60 chars), subtitle (max 160 chars), button
-- Main message under 1024 characters introduces the carousel
-- Cards showcase different products/options/features
-- Each card can have its own CTA button
+- Generate ${carouselCards || 2} individual cards
+- Each card: title (max 60 chars), content (max 160 chars)
+- Main intro message (max 200 chars) introduces the carousel
+- Cards showcase different aspects/benefits/features
+- Buttons are shared across all cards
 - Focus on variety and choice
-- Horizontal scrollable format`,
+- Horizontal scrollable format
+
+CAROUSEL OUTPUT FORMAT (JSON):
+{
+  "intro": "Browse our amazing collection below:",
+  "cards": [
+    "Card 1 content here...",
+    "Card 2 content here...",
+    "Card 3 content here..."
+  ]
+}`,
 
     'Limited Time Offer': `
 LIMITED TIME OFFER SPECIFICATIONS:

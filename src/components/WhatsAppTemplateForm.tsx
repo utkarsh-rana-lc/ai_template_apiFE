@@ -5,6 +5,9 @@ interface FormData {
   category: string; // This will be the Meta category
   templateType: string; // This will be the new Template Type field
   carouselCards: string;
+  isLTO: boolean;
+  ltoTitle: string;
+  ltoExpirationDate: string;
   goal: string;
   language: string;
   tone: string;
@@ -14,6 +17,7 @@ interface FormData {
   addButtons: boolean;
   buttonConfig: ButtonConfig;
   customPrompt: string;
+  mediaFiles: { [key: string]: File | null };
 }
 
 interface ButtonConfig {
@@ -24,11 +28,21 @@ interface ButtonConfig {
   phone?: string;
 }
 
+interface EditableContent {
+  [key: string]: {
+    isEditing: boolean;
+    content: string;
+  };
+}
+
 const WhatsAppTemplateForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     category: '',
     templateType: '',
     carouselCards: '2',
+    isLTO: false,
+    ltoTitle: '',
+    ltoExpirationDate: '',
     goal: '',
     language: '',
     tone: '',
@@ -42,10 +56,13 @@ const WhatsAppTemplateForm: React.FC = () => {
       text: '',
       url: ''
     },
-    customPrompt: ''
+    customPrompt: '',
+    mediaFiles: {}
   });
 
   const [generatedContent, setGeneratedContent] = useState<string>('');
+  const [carouselContent, setCarouselContent] = useState<string[]>([]);
+  const [editableContent, setEditableContent] = useState<EditableContent>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -105,6 +122,44 @@ const WhatsAppTemplateForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError(null);
     setSuccess(false);
+  };
+
+  const handleFileUpload = (type: string, file: File | null) => {
+    setFormData(prev => ({
+      ...prev,
+      mediaFiles: { ...prev.mediaFiles, [type]: file }
+    }));
+  };
+
+  const handleEditToggle = (key: string) => {
+    setEditableContent(prev => ({
+      ...prev,
+      [key]: {
+        isEditing: !prev[key]?.isEditing,
+        content: prev[key]?.content || generatedContent
+      }
+    }));
+  };
+
+  const handleEditSave = (key: string, newContent: string) => {
+    setEditableContent(prev => ({
+      ...prev,
+      [key]: {
+        isEditing: false,
+        content: newContent
+      }
+    }));
+    
+    if (key === 'main') {
+      setGeneratedContent(newContent);
+    } else if (key.startsWith('carousel-')) {
+      const cardIndex = parseInt(key.split('-')[1]);
+      setCarouselContent(prev => {
+        const updated = [...prev];
+        updated[cardIndex] = newContent;
+        return updated;
+      });
+    }
   };
 
   const handleVariableToggle = (variable: string) => {
@@ -173,6 +228,9 @@ const WhatsAppTemplateForm: React.FC = () => {
           category: formData.category,
           templateType: formData.templateType,
           carouselCards: formData.carouselCards,
+          isLTO: formData.isLTO,
+          ltoTitle: formData.ltoTitle,
+          ltoExpirationDate: formData.ltoExpirationDate,
           goal: formData.goal,        // This is the "Use Case" selected in the UI
           tone: formData.tone,
           language: formData.language,
@@ -198,7 +256,23 @@ const WhatsAppTemplateForm: React.FC = () => {
       
       if (data.content) {
         console.log('Generated content:', data.content);
-        setGeneratedContent(data.content);
+        
+        if (formData.templateType === 'Carousel') {
+          // Handle carousel content
+          const cardCount = parseInt(formData.carouselCards);
+          if (data.carouselCards && Array.isArray(data.carouselCards)) {
+            setCarouselContent(data.carouselCards);
+          } else {
+            // Generate individual cards if not provided
+            const cards = Array.from({ length: cardCount }, (_, i) => 
+              `Card ${i + 1}: ${data.content.substring(0, 100)}...`
+            );
+            setCarouselContent(cards);
+          }
+        } else {
+          setGeneratedContent(data.content);
+        }
+        
         setSuccess(true);
       } else {
         console.error('No content in response:', data);
@@ -218,10 +292,18 @@ const WhatsAppTemplateForm: React.FC = () => {
         'Custom': `Hi {{1}}, we have an important update regarding your {{2}}.\n\nPlease check your account for more details or contact our support team.\n\nThank you!`
       };
       
-      const mockContent = mockTemplates[formData.goal as keyof typeof mockTemplates] || 
-        `Hi {{1}}, thank you for your interest in {{2}}. We'll get back to you soon!`;
+      if (formData.templateType === 'Carousel') {
+        const cardCount = parseInt(formData.carouselCards);
+        const mockCards = Array.from({ length: cardCount }, (_, i) => 
+          `Card ${i + 1}: ${mockTemplates[formData.goal as keyof typeof mockTemplates] || 'Sample content'}`
+        );
+        setCarouselContent(mockCards);
+      } else {
+        const mockContent = mockTemplates[formData.goal as keyof typeof mockTemplates] || 
+          `Hi {{1}}, thank you for your interest in {{2}}. We'll get back to you soon!`;
+        setGeneratedContent(mockContent);
+      }
       
-      setGeneratedContent(mockContent);
       setSuccess(true);
       setError('API temporarily unavailable - using demo content');
     } finally {
@@ -234,6 +316,9 @@ const WhatsAppTemplateForm: React.FC = () => {
       category: '',
       templateType: '',
       carouselCards: '2',
+      isLTO: false,
+      ltoTitle: '',
+      ltoExpirationDate: '',
       goal: '',
       language: '',
       tone: '',
@@ -247,9 +332,12 @@ const WhatsAppTemplateForm: React.FC = () => {
         text: '',
         url: ''
       },
-      customPrompt: ''
+      customPrompt: '',
+      mediaFiles: {}
     });
     setGeneratedContent('');
+    setCarouselContent([]);
+    setEditableContent({});
     setError(null);
     setSuccess(false);
   };
@@ -334,6 +422,54 @@ const WhatsAppTemplateForm: React.FC = () => {
             </select>
           </div>
         )}
+
+        {/* Limited Time Offer Section */}
+        <div>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={formData.isLTO}
+              onChange={(e) => setFormData(prev => ({ ...prev, isLTO: e.target.checked }))}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
+            />
+            <span className="text-sm font-medium text-gray-900">Is this a Limited Time Offer?</span>
+          </label>
+
+          {formData.isLTO && (
+            <div className="mt-4 space-y-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  LTO Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.ltoTitle}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 16) {
+                      setFormData(prev => ({ ...prev, ltoTitle: e.target.value }));
+                    }
+                  }}
+                  placeholder="e.g., FLASH SALE"
+                  maxLength={16}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">{formData.ltoTitle.length}/16 characters</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Expiration Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.ltoExpirationDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ltoExpirationDate: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Use Case */}
         <div>
@@ -428,6 +564,43 @@ const WhatsAppTemplateForm: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Media Upload Section */}
+        {(formData.templateType === 'Image' || formData.templateType === 'Video' || formData.templateType === 'Document') && (
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              {formData.templateType} Upload
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <input
+                type="file"
+                accept={
+                  formData.templateType === 'Image' ? 'image/*' :
+                  formData.templateType === 'Video' ? 'video/*' :
+                  '.pdf,.doc,.docx'
+                }
+                onChange={(e) => handleFileUpload(formData.templateType, e.target.files?.[0] || null)}
+                className="hidden"
+                id="media-upload"
+              />
+              <label htmlFor="media-upload" className="cursor-pointer">
+                <div className="text-gray-400 mb-2">
+                  {formData.templateType === 'Image' && '🖼️'}
+                  {formData.templateType === 'Video' && '🎥'}
+                  {formData.templateType === 'Document' && '📄'}
+                </div>
+                <p className="text-sm text-gray-600">
+                  Click to upload {formData.templateType.toLowerCase()}
+                </p>
+              </label>
+              {formData.mediaFiles[formData.templateType] && (
+                <p className="text-sm text-green-600 mt-2">
+                  ✅ {formData.mediaFiles[formData.templateType]?.name}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Header */}
         <div>
@@ -623,43 +796,83 @@ const WhatsAppTemplateForm: React.FC = () => {
       {/* Generated Content Display */}
       {generatedContent && (
         <div className="mt-8 p-6 bg-[#e5ddd5] rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">WhatsApp Template Preview</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">WhatsApp Template Preview</h3>
+            <button
+              onClick={() => handleEditToggle('main')}
+              className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              {editableContent['main']?.isEditing ? 'Cancel' : 'Edit'}
+            </button>
+          </div>
           
           {/* WhatsApp Message Container */}
           <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto relative">
+            {/* LTO Header */}
+            {formData.isLTO && formData.ltoTitle && (
+              <div className="bg-red-100 px-3 py-2 rounded-t-lg border-b border-red-200">
+                <div className="text-sm font-bold text-red-800 text-center">
+                  ⏰ {formData.ltoTitle.toUpperCase()}
+                </div>
+                {formData.ltoExpirationDate && (
+                  <div className="text-xs text-red-600 text-center">
+                    Expires: {new Date(formData.ltoExpirationDate).toLocaleDateString()}
+                  </div>
+                )}
+              </div>
+            )}
+            
             {/* Header Section */}
             {formData.header && (
-              <div className="bg-gray-100 px-3 py-2 rounded-t-lg border-b border-gray-200">
+              <div className={`bg-gray-100 px-3 py-2 ${!formData.isLTO ? 'rounded-t-lg' : ''} border-b border-gray-200`}>
                 <div className="text-sm font-medium text-gray-900">{formData.header}</div>
               </div>
             )}
             
             {/* Template Type Specific Media Sections */}
             {formData.templateType === 'Image' && (
-              <div className="bg-gray-200 rounded-t-lg h-24 flex items-center justify-center relative">
-                <div className="text-gray-600 text-2xl">🖼️</div>
-                <div className="absolute bottom-1 right-1 text-xs text-gray-600 bg-black bg-opacity-50 text-white px-1 rounded">
-                  Image
+              <div className="bg-gray-200 h-32 flex items-center justify-center relative">
+                {formData.mediaFiles['Image'] ? (
+                  <img
+                    src={URL.createObjectURL(formData.mediaFiles['Image'])}
+                    alt="Uploaded"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-gray-600 text-3xl">🖼️</div>
+                )}
+                <div className="absolute bottom-1 right-1 text-xs text-white bg-black bg-opacity-50 px-1 rounded">
+                  {formData.mediaFiles['Image'] ? formData.mediaFiles['Image'].name : 'Image'}
                 </div>
               </div>
             )}
             
             {formData.templateType === 'Video' && (
-              <div className="bg-black rounded-t-lg h-24 flex items-center justify-center relative">
-                <div className="text-white text-2xl">▶</div>
-                <div className="absolute bottom-1 right-1 text-white text-xs">0:15</div>
+              <div className="bg-black h-32 flex items-center justify-center relative">
+                {formData.mediaFiles['Video'] ? (
+                  <video className="w-full h-full object-cover">
+                    <source src={URL.createObjectURL(formData.mediaFiles['Video'])} />
+                  </video>
+                ) : (
+                  <div className="text-white text-3xl">▶</div>
+                )}
+                <div className="absolute bottom-1 right-1 text-white text-xs bg-black bg-opacity-50 px-1 rounded">
+                  {formData.mediaFiles['Video'] ? formData.mediaFiles['Video'].name : '0:15'}
+                </div>
               </div>
             )}
             
             {formData.templateType === 'Document' && (
-              <div className="bg-gray-100 rounded-t-lg h-16 flex items-center justify-center relative border-b">
+              <div className="bg-gray-100 h-16 flex items-center justify-center relative border-b">
                 <div className="text-gray-600 text-lg">📄</div>
-                <div className="ml-2 text-sm text-gray-700">Document.pdf</div>
+                <div className="ml-2 text-sm text-gray-700">
+                  {formData.mediaFiles['Document']?.name || 'Document.pdf'}
+                </div>
               </div>
             )}
             
             {formData.templateType === 'Carousel' && (
-              <div className="bg-gray-100 rounded-t-lg h-20 border-b">
+              <div className="bg-gray-100 h-20 border-b">
                 <div className="flex overflow-x-auto p-2 space-x-2">
                   {Array.from({length: parseInt(formData.carouselCards || '2')}, (_, i) => (
                     <div key={i} className="flex-shrink-0 w-12 h-12 bg-white rounded border flex flex-col items-center justify-center">
@@ -668,23 +881,45 @@ const WhatsAppTemplateForm: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <div className="absolute bottom-1 right-1 text-xs text-gray-600">
+                <div className="text-xs text-gray-600 text-center pb-1">
                   {formData.carouselCards || '2'} cards
                 </div>
               </div>
             )}
             
-            {formData.templateType === 'Limited Time Offer' && (
-              <div className="bg-red-100 rounded-t-lg h-8 flex items-center justify-center border-b border-red-200">
-                <div className="text-red-600 text-xs font-medium">⏰ LIMITED TIME OFFER</div>
-              </div>
-            )}
-            
             {/* Message Content */}
             <div className="p-3">
-              <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line text-left">
-                {generatedContent}
-              </div>
+              {editableContent['main']?.isEditing ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={editableContent['main']?.content || generatedContent}
+                    onChange={(e) => setEditableContent(prev => ({
+                      ...prev,
+                      main: { ...prev.main, content: e.target.value }
+                    }))}
+                    className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                    rows={4}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEditSave('main', editableContent['main']?.content || generatedContent)}
+                      className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => handleEditToggle('main')}
+                      className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line text-left">
+                  {editableContent['main']?.content || generatedContent}
+                </div>
+              )}
               
               {/* Footer */}
               {formData.footer && (
@@ -695,7 +930,7 @@ const WhatsAppTemplateForm: React.FC = () => {
               
               {/* Character Count */}
               <div className="text-xs text-gray-400 mt-1">
-                {generatedContent.length}/1024 characters
+                {(editableContent['main']?.content || generatedContent).length}/1024 characters
               </div>
               
               {/* Timestamp */}
@@ -737,6 +972,84 @@ const WhatsAppTemplateForm: React.FC = () => {
               Insert in Body
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Carousel Content Display */}
+      {formData.templateType === 'Carousel' && carouselContent.length > 0 && (
+        <div className="mt-8 p-6 bg-[#e5ddd5] rounded-lg border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Carousel Cards Preview</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {carouselContent.map((cardContent, index) => (
+              <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div className="p-3 border-b border-gray-100 flex items-center justify-between">
+                  <h4 className="font-medium text-gray-900">Card {index + 1}</h4>
+                  <button
+                    onClick={() => handleEditToggle(`carousel-${index}`)}
+                    className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    {editableContent[`carousel-${index}`]?.isEditing ? 'Cancel' : 'Edit'}
+                  </button>
+                </div>
+                
+                <div className="p-3">
+                  {/* Card Image Placeholder */}
+                  <div className="bg-gray-200 h-24 rounded mb-3 flex items-center justify-center">
+                    <span className="text-gray-500 text-sm">Card {index + 1} Image</span>
+                  </div>
+                  
+                  {/* Card Content */}
+                  {editableContent[`carousel-${index}`]?.isEditing ? (
+                    <div className="space-y-2">
+                      <textarea
+                        value={editableContent[`carousel-${index}`]?.content || cardContent}
+                        onChange={(e) => setEditableContent(prev => ({
+                          ...prev,
+                          [`carousel-${index}`]: { ...prev[`carousel-${index}`], content: e.target.value }
+                        }))}
+                        className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                        rows={3}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditSave(`carousel-${index}`, editableContent[`carousel-${index}`]?.content || cardContent)}
+                          className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => handleEditToggle(`carousel-${index}`)}
+                          className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
+                      {editableContent[`carousel-${index}`]?.content || cardContent}
+                    </div>
+                  )}
+                  
+                  {/* Character Count */}
+                  <div className="text-xs text-gray-400 mt-2">
+                    {(editableContent[`carousel-${index}`]?.content || cardContent).length}/160 characters per card
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Shared Buttons for Carousel */}
+          {formData.addButtons && formData.buttonConfig.text && (
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-900 mb-2">Shared Buttons (All Cards)</h4>
+              <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm">
+                {formData.buttonConfig.text}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

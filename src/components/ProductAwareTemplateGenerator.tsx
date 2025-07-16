@@ -75,6 +75,7 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
   const [carouselCards, setCarouselCards] = useState('2');
 
   const [generatedTemplates, setGeneratedTemplates] = useState<GeneratedTemplate[]>([]);
+  const [editableTemplates, setEditableTemplates] = useState<{[key: string]: {isEditing: boolean, content: string}}>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [regeneratingProduct, setRegeneratingProduct] = useState<string | null>(null);
   const [isSendingForApproval, setIsSendingForApproval] = useState(false);
@@ -149,6 +150,32 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
     );
   };
 
+  const handleEditToggle = (productName: string) => {
+    const key = `product-${productName}`;
+    setEditableTemplates(prev => ({
+      ...prev,
+      [key]: {
+        isEditing: !prev[key]?.isEditing,
+        content: prev[key]?.content || generatedTemplates.find(t => t.product === productName)?.content || ''
+      }
+    }));
+  };
+
+  const handleEditSave = (productName: string, newContent: string) => {
+    const key = `product-${productName}`;
+    setEditableTemplates(prev => ({
+      ...prev,
+      [key]: {
+        isEditing: false,
+        content: newContent
+      }
+    }));
+    
+    // Update the generated templates
+    setGeneratedTemplates(prev =>
+      prev.map(t => t.product === productName ? { ...t, content: newContent } : t)
+    );
+  };
   const generateTemplates = async () => {
     if (!selectedProducts.length || !useCase || !tone || !language || !category || !templateType) {
       alert('Please fill in all required fields including Category and Template Type, and select at least one product');
@@ -800,6 +827,14 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                         <h3 className="font-medium text-gray-900 text-sm">{template.product}</h3>
                         <p className="text-xs text-gray-500 truncate">{product?.description}</p>
                       </div>
+                      <div className="ml-auto">
+                        <button
+                          onClick={() => handleEditToggle(template.product)}
+                          className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                        >
+                          {editableTemplates[`product-${template.product}`]?.isEditing ? 'Cancel' : 'Edit'}
+                        </button>
+                      </div>
                     </div>
 
                     {/* WhatsApp Preview */}
@@ -854,13 +889,44 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                         
                         {/* Message Content */}
                         <div className="p-3">
-                          <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line text-left">
-                            {template.content}
-                          </div>
+                          {editableTemplates[`product-${template.product}`]?.isEditing ? (
+                            <div className="space-y-2">
+                              <textarea
+                                value={editableTemplates[`product-${template.product}`]?.content || template.content}
+                                onChange={(e) => setEditableTemplates(prev => ({
+                                  ...prev,
+                                  [`product-${template.product}`]: {
+                                    ...prev[`product-${template.product}`],
+                                    content: e.target.value
+                                  }
+                                }))}
+                                className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                                rows={4}
+                              />
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleEditSave(template.product, editableTemplates[`product-${template.product}`]?.content || template.content)}
+                                  className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  onClick={() => handleEditToggle(template.product)}
+                                  className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line text-left">
+                              {editableTemplates[`product-${template.product}`]?.content || template.content}
+                            </div>
+                          )}
                           
                           {/* Character Count */}
                           <div className="text-xs text-gray-400 mt-1">
-                            {template.content.length}/1024 characters
+                            {(editableTemplates[`product-${template.product}`]?.content || template.content).length}/1024 characters
                           </div>
                           
                           {/* Timestamp */}
