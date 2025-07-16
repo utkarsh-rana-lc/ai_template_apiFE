@@ -1102,7 +1102,7 @@ const WhatsAppTemplateForm: React.FC = () => {
           </button>
           
           {generatedContent && (
-            <button
+            <div className="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
               type="button"
               onClick={regenerateTemplate}
               disabled={isLoading}
@@ -1576,9 +1576,10 @@ const WhatsAppTemplateForm: React.FC = () => {
         }
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
+            </div>
         }
+        </div>
       `}</style>
-    </div>
   );
 };
 
