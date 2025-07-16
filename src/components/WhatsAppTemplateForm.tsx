@@ -5,6 +5,7 @@ interface FormData {
   category: string; // This will be the Meta category
   templateCategory: string; // This will be the new Category field
   templateType: string; // This will be the new Template Type field
+  carouselCards: string;
   goal: string;
   language: string;
   tone: string;
@@ -28,6 +29,7 @@ const WhatsAppTemplateForm: React.FC = () => {
     category: '',
     templateCategory: '',
     templateType: '',
+    carouselCards: '2',
     goal: '',
     language: '',
     tone: '',
@@ -179,6 +181,7 @@ const WhatsAppTemplateForm: React.FC = () => {
           tone: formData.tone,
           language: formData.language,
           variables: formData.variables,
+          carousel_cards: formData.carouselCards,
           header: formData.header,
           footer: formData.footer,
           add_buttons: formData.addButtons,
@@ -235,6 +238,7 @@ const WhatsAppTemplateForm: React.FC = () => {
       category: '',
       templateCategory: '',
       templateType: '',
+      carouselCards: '2',
       goal: '',
       language: '',
       tone: '',
@@ -314,6 +318,26 @@ const WhatsAppTemplateForm: React.FC = () => {
             ))}
           </select>
         </div>
+
+        {/* Carousel Cards Count */}
+        {formData.templateType === 'Carousel' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Number of Cards in Carousel <span className="text-red-500">*</span>
+            </label>
+            <p className="text-sm text-gray-600 mb-3">Select number of cards (2-10)</p>
+            <select
+              value={formData.carouselCards || '2'}
+              onChange={(e) => handleInputChange('carouselCards', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors"
+              required
+            >
+              {[2,3,4,5,6,7,8,9,10].map(num => (
+                <option key={num} value={num}>{num} Cards</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Template Type */}
         <div>
@@ -615,6 +639,30 @@ const WhatsAppTemplateForm: React.FC = () => {
               </div>
             )}
             
+            {/* Document Section */}
+            {formData.templateType === 'Document' && (
+              <div className="bg-gray-100 rounded-t-lg h-16 flex items-center justify-center relative border-b">
+                <div className="text-gray-600 text-lg">📄</div>
+                <div className="ml-2 text-sm text-gray-700">Document.pdf</div>
+              </div>
+            )}
+            
+            {/* Carousel Section */}
+            {formData.templateType === 'Carousel' && (
+              <div className="bg-gray-100 rounded-t-lg h-20 flex items-center justify-center relative border-b">
+                <div className="flex space-x-2">
+                  {Array.from({length: parseInt(formData.carouselCards || '2')}, (_, i) => (
+                    <div key={i} className="w-12 h-12 bg-white rounded border flex items-center justify-center">
+                      <span className="text-xs text-gray-500">{i + 1}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="absolute bottom-1 right-1 text-xs text-gray-600">
+                  {formData.carouselCards} cards
+                </div>
+              </div>
+            )}
+            
             {/* Message Content */}
             <div className="p-3">
               <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line text-left">
@@ -641,16 +689,6 @@ const WhatsAppTemplateForm: React.FC = () => {
               <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
                 {formData.buttonConfig.text}
               </button>
-              {formData.buttonConfig.type === 'CTA' && formData.buttonConfig.subtype === 'Copy Code' && (
-                <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
-                  Copy Code
-                </button>
-              )}
-              {formData.buttonConfig.type === 'CTA' && formData.buttonConfig.subtype === 'Phone Number' && (
-                <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
-                  📞 Call Now
-                </button>
-              )}
             </div>
           )}
           

@@ -72,6 +72,7 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
   });
   const [category, setCategory] = useState('');
   const [templateType, setTemplateType] = useState('');
+  const [carouselCards, setCarouselCards] = useState('2');
 
   const [generatedTemplates, setGeneratedTemplates] = useState<GeneratedTemplate[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -168,6 +169,7 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
         language,
         category,
         template_type: templateType,
+        carousel_cards: carouselCards,
         variables,
         custom_prompt: customPrompt,
         add_buttons: addButtons,
@@ -283,6 +285,7 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
         variables,
         category,
         template_type: templateType,
+        carousel_cards: carouselCards,
         custom_prompt: customPrompt,
         add_buttons: addButtons,
         button_config: addButtons ? buttonConfig : null,
@@ -495,6 +498,24 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                 ))}
               </select>
             </div>
+
+            {/* Carousel Cards Count */}
+            {templateType === 'Carousel' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Number of Cards in Carousel <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={carouselCards}
+                  onChange={(e) => setCarouselCards(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {[2,3,4,5,6,7,8,9,10].map(num => (
+                    <option key={num} value={num}>{num} Cards</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Product Selector */}
             <div>
@@ -805,10 +826,40 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                           
                           {/* Timestamp */}
                           <div className="text-xs text-gray-500 text-right mt-2">
-                            1:04 AM
+                      {templateType === 'Video' && (
+                        <div className="bg-black rounded-t-lg h-24 flex items-center justify-center relative">
+                          <div className="text-white text-2xl">▶</div>
+                          <div className="absolute bottom-1 right-1 text-white text-xs">0:15</div>
+                        </div>
+                      )}
+                      
+                      {templateType === 'Image' && (
+                        <div className="bg-gray-200 rounded-t-lg h-24 flex items-center justify-center relative">
+                          <div className="text-gray-600 text-2xl">🖼️</div>
+                        </div>
+                      )}
+                      
+                      {templateType === 'Document' && (
+                        <div className="bg-gray-100 rounded-t-lg h-16 flex items-center justify-center relative border-b">
+                          <div className="text-gray-600 text-lg">📄</div>
+                          <div className="ml-2 text-sm text-gray-700">{product?.name}.pdf</div>
+                        </div>
+                      )}
+                      
+                      {templateType === 'Carousel' && (
+                        <div className="bg-gray-100 rounded-t-lg h-20 flex items-center justify-center relative border-b">
+                          <div className="flex space-x-2">
+                            {Array.from({length: parseInt(carouselCards)}, (_, i) => (
+                              <div key={i} className="w-12 h-12 bg-white rounded border flex items-center justify-center">
+                                <span className="text-xs text-gray-500">{i + 1}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="absolute bottom-1 right-1 text-xs text-gray-600">
+                            {carouselCards} cards
                           </div>
                         </div>
-                      </div>
+                      )}
                       
                       {/* Buttons (Outside message bubble) */}
                       {addButtons && buttonConfig.text && (
