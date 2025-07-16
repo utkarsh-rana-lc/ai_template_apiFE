@@ -253,7 +253,7 @@ function getUseCaseGuidance(goal, category) {
 - Use FOMO (fear of missing out) strategically
 - Highlight the benefits they'll gain by completing purchase
 - Create emotional connection to the abandoned items`,
-      audience: 'Customers who showed purchase intent but didn't complete',
+      audience: 'Customers who showed purchase intent but didn\'t complete',
       psychology: 'Overcome abandonment hesitation, create completion motivation'
     },
     'Order Confirmation': {
