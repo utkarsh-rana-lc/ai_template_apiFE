@@ -3,7 +3,6 @@ import { Loader2, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface FormData {
   category: string; // This will be the Meta category
-  templateCategory: string; // This will be the new Category field
   templateType: string; // This will be the new Template Type field
   carouselCards: string;
   goal: string;
@@ -14,6 +13,7 @@ interface FormData {
   footer: string;
   addButtons: boolean;
   buttonConfig: ButtonConfig;
+  customPrompt: string;
 }
 
 interface ButtonConfig {
@@ -27,7 +27,6 @@ interface ButtonConfig {
 const WhatsAppTemplateForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     category: '',
-    templateCategory: '',
     templateType: '',
     carouselCards: '2',
     goal: '',
@@ -42,7 +41,8 @@ const WhatsAppTemplateForm: React.FC = () => {
       subtype: 'Static URL',
       text: '',
       url: ''
-    }
+    },
+    customPrompt: ''
   });
 
   const [generatedContent, setGeneratedContent] = useState<string>('');
@@ -175,17 +175,17 @@ const WhatsAppTemplateForm: React.FC = () => {
         },
         body: JSON.stringify({
           category: formData.category,
-          template_category: formData.templateCategory,
-          template_type: formData.templateType,
+          templateType: formData.templateType,
+          carouselCards: formData.carouselCards,
           goal: formData.goal,        // This is the "Use Case" selected in the UI
           tone: formData.tone,
           language: formData.language,
           variables: formData.variables,
-          carousel_cards: formData.carouselCards,
           header: formData.header,
           footer: formData.footer,
-          add_buttons: formData.addButtons,
-          button_config: formData.addButtons ? formData.buttonConfig : null
+          addButtons: formData.addButtons,
+          buttonConfig: formData.addButtons ? formData.buttonConfig : null,
+          custom_prompt: formData.customPrompt || ''
         }),
       });
 
@@ -627,19 +627,23 @@ const WhatsAppTemplateForm: React.FC = () => {
               </div>
             )}
             
-            {/* Media Section (if template type is Image/Video) */}
-            {(formData.templateType === 'Image' || formData.templateType === 'Video') && (
-              <div className="bg-black rounded-t-lg h-24 flex items-center justify-center relative">
-                <div className="text-white text-2xl">
-                  {formData.templateType === 'Video' ? '▶' : '🖼️'}
+            {/* Template Type Specific Media Sections */}
+            {formData.templateType === 'Image' && (
+              <div className="bg-gray-200 rounded-t-lg h-24 flex items-center justify-center relative">
+                <div className="text-gray-600 text-2xl">🖼️</div>
+                <div className="absolute bottom-1 right-1 text-xs text-gray-600 bg-black bg-opacity-50 text-white px-1 rounded">
+                  Image
                 </div>
-                {formData.templateType === 'Video' && (
-                  <div className="absolute bottom-1 right-1 text-white text-xs">0:15</div>
-                )}
               </div>
             )}
             
-            {/* Document Section */}
+            {formData.templateType === 'Video' && (
+              <div className="bg-black rounded-t-lg h-24 flex items-center justify-center relative">
+                <div className="text-white text-2xl">▶</div>
+                <div className="absolute bottom-1 right-1 text-white text-xs">0:15</div>
+              </div>
+            )}
+            
             {formData.templateType === 'Document' && (
               <div className="bg-gray-100 rounded-t-lg h-16 flex items-center justify-center relative border-b">
                 <div className="text-gray-600 text-lg">📄</div>
@@ -647,18 +651,91 @@ const WhatsAppTemplateForm: React.FC = () => {
               </div>
             )}
             
-            {/* Carousel Section */}
             {formData.templateType === 'Carousel' && (
-              <div className="bg-gray-100 rounded-t-lg h-20 flex items-center justify-center relative border-b">
-                <div className="flex space-x-2">
+              <div className="bg-gray-100 rounded-t-lg h-20 border-b">
+                <div className="flex overflow-x-auto p-2 space-x-2">
                   {Array.from({length: parseInt(formData.carouselCards || '2')}, (_, i) => (
-                    <div key={i} className="w-12 h-12 bg-white rounded border flex items-center justify-center">
-                      <span className="text-xs text-gray-500">{i + 1}</span>
+                    <div key={i} className="flex-shrink-0 w-12 h-12 bg-white rounded border flex flex-col items-center justify-center">
+                      <div className="text-xs text-gray-400">{i + 1}</div>
+                      <div className="text-xs text-gray-600">🖼️</div>
                     </div>
                   ))}
                 </div>
                 <div className="absolute bottom-1 right-1 text-xs text-gray-600">
-                  {formData.carouselCards} cards
+                  {formData.carouselCards || '2'} cards
+                </div>
+              </div>
+            )}
+            
+            {formData.templateType === 'Limited Time Offer' && (
+              <div className="bg-red-100 rounded-t-lg h-8 flex items-center justify-center border-b border-red-200">
+                <div className="text-red-600 text-xs font-medium">⏰ LIMITED TIME OFFER</div>
+              </div>
+            )}
+            
+            {/* Message Content */}
+            <div className="p-3">
+              <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line text-left">
+                {generatedContent}
+              </div>
+              
+              {/* Footer */}
+              {formData.footer && (
+                <div className="mt-3 pt-2 border-t border-gray-100 text-xs text-gray-600">
+                  {formData.footer}
+                </div>
+              )}
+              
+              {/* Character Count */}
+              <div className="text-xs text-gray-400 mt-1">
+                {generatedContent.length}/1024 characters
+              </div>
+              
+              {/* Timestamp */}
+              <div className="text-xs text-gray-500 text-right mt-2">
+                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            }
+          
+          {/* Buttons (Outside message bubble) - Only show if user enabled them */}
+          {formData.addButtons && formData.buttonConfig && formData.buttonConfig.text && (
+            <div className="mt-2 space-y-1 max-w-sm ml-auto">
+              <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
+                {formData.buttonConfig.text}
+              </button>
+              
+              {/* Additional buttons based on subtype */}
+              {formData.buttonConfig.type === 'CTA' && formData.buttonConfig.subtype === 'Copy Code' && (
+                <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
+                  Copy Code
+                </button>
+              )}
+              
+              {formData.buttonConfig.type === 'CTA' && formData.buttonConfig.subtype === 'Phone Number' && (
+                <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
+                  📞 Call Now
+                </button>
+              )}
+            </div>
+          )}
+          
+          {/* Insert in Body CTA */}
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={insertInBody}
+              className="bg-[#00D4AA] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#00B896] transition-colors flex items-center gap-2 shadow-sm"
+            >
+              <CheckCircle className="w-5 h-5" />
+              Insert in Body
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default WhatsAppTemplateForm;
                 </div>
               </div>
             )}

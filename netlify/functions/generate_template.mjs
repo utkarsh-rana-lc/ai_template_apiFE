@@ -64,7 +64,7 @@ You NEVER exceed character limits and ALWAYS follow Meta's exact specifications 
           content: prompt 
         }
       ],
-      max_tokens: 250, // Strict limit to ensure under 1024 chars
+      max_tokens: 200, // Strict limit to ensure under 1024 chars
       temperature: 0.7,
       top_p: 0.9,
       frequency_penalty: 0.4, // Reduce repetition
@@ -420,12 +420,12 @@ ${baseInstructions}
 
 function getLengthGuidance(templateType) {
   const guidance = {
-    'Text': 'Aim for 800-1000 characters to maximize impact while staying under limit.',
-    'Image': 'Keep text concise (400-600 chars) as image is the main focus.',
-    'Video': 'Brief text (300-500 chars) as video carries the main message.',
-    'Document': 'Moderate length (500-700 chars) to explain document value.',
-    'Carousel': 'Concise intro (300-500 chars) as cards contain the details.',
-    'Limited Time Offer': 'Punchy and urgent (600-800 chars) to drive immediate action.'
+    'Text': 'Aim for 600-800 characters to maximize impact while staying under limit.',
+    'Image': 'Keep text concise (300-500 chars) as image is the main focus.',
+    'Video': 'Brief text (200-400 chars) as video carries the main message.',
+    'Document': 'Moderate length (400-600 chars) to explain document value.',
+    'Carousel': 'Concise intro (200-400 chars) as cards contain the details.',
+    'Limited Time Offer': 'Punchy and urgent (500-700 chars) to drive immediate action.'
   };
 
   return `LENGTH GUIDANCE: ${guidance[templateType] || guidance['Text']}`;

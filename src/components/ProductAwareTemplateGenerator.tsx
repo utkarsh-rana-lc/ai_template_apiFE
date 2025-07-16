@@ -529,51 +529,11 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                       key={product.id}
                       className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800"
                     >
-                {/* Media Section based on Template Type */}
-                {templateType === 'Image' && (
-                  <div className="bg-gray-200 rounded-t-lg h-24 flex items-center justify-center relative">
-                    <div className="text-gray-600 text-2xl">🖼️</div>
-                    <div className="absolute bottom-1 right-1 text-xs text-gray-600 bg-black bg-opacity-50 text-white px-1 rounded">
-                      Image
-                    </div>
-                  </div>
-                )}
-                
-                {templateType === 'Video' && (
-                  <div className="bg-black rounded-t-lg h-24 flex items-center justify-center relative">
-                    <div className="text-white text-2xl">▶</div>
-                    <div className="absolute bottom-1 right-1 text-white text-xs">0:15</div>
-                  </div>
-                )}
-                
-                {templateType === 'Document' && (
-                  <div className="bg-gray-100 rounded-t-lg h-16 flex items-center justify-center relative border-b">
-                    <div className="text-gray-600 text-lg">📄</div>
-                    <div className="ml-2 text-sm text-gray-700">{product?.name}.pdf</div>
-                  </div>
-                )}
-                
-                {templateType === 'Carousel' && (
-                  <div className="bg-gray-100 rounded-t-lg h-20 border-b">
-                    <div className="flex overflow-x-auto p-2 space-x-2">
-                      {Array.from({length: parseInt(carouselCards)}, (_, i) => (
-                        <div key={i} className="flex-shrink-0 w-12 h-12 bg-white rounded border flex flex-col items-center justify-center">
-                          <div className="text-xs text-gray-400">{i + 1}</div>
-                          <div className="text-xs text-gray-600">🖼️</div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="absolute bottom-1 right-1 text-xs text-gray-600 bg-white px-1 rounded">
-                      {carouselCards} cards
-                    </div>
-                  </div>
-                )}
-                
-                {templateType === 'Limited Time Offer' && (
-                  <div className="bg-red-100 rounded-t-lg h-8 flex items-center justify-center border-b border-red-200">
-                    <div className="text-red-600 text-xs font-medium">⏰ LIMITED TIME OFFER</div>
-                  </div>
-                )}
+                      {product.name}
+                      <button
+                        onClick={() => handleProductRemove(product.id)}
+                        className="ml-1 text-blue-600 hover:text-blue-800"
+                      >
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -581,13 +541,13 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                   <div className="flex-1 min-w-[120px]">
                     <input
                       type="text"
-                  {/* Character Count */}
-                  <div className="text-xs text-gray-400 mt-1">
-                    {template.content.length}/1024 characters
-                  </div>
-                  
                       placeholder="Search products..."
                       value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      onFocus={() => setShowProductDropdown(true)}
+                      className="w-full border-none outline-none text-sm"
+                    />
+                  </div>
                 </div>
 
                 {showProductDropdown && (
@@ -781,8 +741,18 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                       />
                     </div>
                   )}
-                    1:04 AM
-                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Generate Button */}
+            <button
+              onClick={generateTemplates}
+              disabled={isGenerating}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              {isGenerating ? (
+                <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Generating Templates...
                 </>
@@ -836,16 +806,61 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                     <div className="p-3 bg-[#e5ddd5]">
                       {/* WhatsApp Message Container */}
                       <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto relative">
-                        {/* Media Section (Video Placeholder) */}
-                        <div className="bg-black rounded-t-lg h-24 flex items-center justify-center relative">
-                          <div className="text-white text-2xl">▶</div>
-                          <div className="absolute bottom-1 right-1 text-white text-xs">0:15</div>
-                        </div>
+                        {/* Media Section based on Template Type */}
+                        {templateType === 'Image' && (
+                          <div className="bg-gray-200 rounded-t-lg h-24 flex items-center justify-center relative">
+                            <div className="text-gray-600 text-2xl">🖼️</div>
+                            <div className="absolute bottom-1 right-1 text-xs text-gray-600 bg-black bg-opacity-50 text-white px-1 rounded">
+                              Image
+                            </div>
+                          </div>
+                        )}
+                        
+                        {templateType === 'Video' && (
+                          <div className="bg-black rounded-t-lg h-24 flex items-center justify-center relative">
+                            <div className="text-white text-2xl">▶</div>
+                            <div className="absolute bottom-1 right-1 text-white text-xs">0:15</div>
+                          </div>
+                        )}
+                        
+                        {templateType === 'Document' && (
+                          <div className="bg-gray-100 rounded-t-lg h-16 flex items-center justify-center relative border-b">
+                            <div className="text-gray-600 text-lg">📄</div>
+                            <div className="ml-2 text-sm text-gray-700">{product?.name}.pdf</div>
+                          </div>
+                        )}
+                        
+                        {templateType === 'Carousel' && (
+                          <div className="bg-gray-100 rounded-t-lg h-20 border-b">
+                            <div className="flex overflow-x-auto p-2 space-x-2">
+                              {Array.from({length: parseInt(carouselCards)}, (_, i) => (
+                                <div key={i} className="flex-shrink-0 w-12 h-12 bg-white rounded border flex flex-col items-center justify-center">
+                                  <div className="text-xs text-gray-400">{i + 1}</div>
+                                  <div className="text-xs text-gray-600">🖼️</div>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="absolute bottom-1 right-1 text-xs text-gray-600 bg-white px-1 rounded">
+                              {carouselCards} cards
+                            </div>
+                          </div>
+                        )}
+                        
+                        {templateType === 'Limited Time Offer' && (
+                          <div className="bg-red-100 rounded-t-lg h-8 flex items-center justify-center border-b border-red-200">
+                            <div className="text-red-600 text-xs font-medium">⏰ LIMITED TIME OFFER</div>
+                          </div>
+                        )}
                         
                         {/* Message Content */}
                         <div className="p-3">
                           <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line text-left">
                             {template.content}
+                          </div>
+                          
+                          {/* Character Count */}
+                          <div className="text-xs text-gray-400 mt-1">
+                            {template.content.length}/1024 characters
                           </div>
                           
                           {/* Timestamp */}
@@ -854,41 +869,6 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                           </div>
                         </div>
                       </div>
-                      
-                      {templateType === 'Video' && (
-                        <div className="bg-black rounded-t-lg h-24 flex items-center justify-center relative">
-                          <div className="text-white text-2xl">▶</div>
-                          <div className="absolute bottom-1 right-1 text-white text-xs">0:15</div>
-                        </div>
-                      )}
-                      
-                      {templateType === 'Image' && (
-                        <div className="bg-gray-200 rounded-t-lg h-24 flex items-center justify-center relative">
-                          <div className="text-gray-600 text-2xl">🖼️</div>
-                        </div>
-                      )}
-                      
-                      {templateType === 'Document' && (
-                        <div className="bg-gray-100 rounded-t-lg h-16 flex items-center justify-center relative border-b">
-                          <div className="text-gray-600 text-lg">📄</div>
-                          <div className="ml-2 text-sm text-gray-700">{product?.name}.pdf</div>
-                        </div>
-                      )}
-                      
-                      {templateType === 'Carousel' && (
-                        <div className="bg-gray-100 rounded-t-lg h-20 flex items-center justify-center relative border-b">
-                          <div className="flex space-x-2">
-                            {Array.from({length: parseInt(carouselCards)}, (_, i) => (
-                              <div key={i} className="w-12 h-12 bg-white rounded border flex items-center justify-center">
-                                <span className="text-xs text-gray-500">{i + 1}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="absolute bottom-1 right-1 text-xs text-gray-600">
-                            {carouselCards} cards
-                          </div>
-                        </div>
-                      )}
                       
                       {/* Buttons (Outside message bubble) */}
                       {addButtons && buttonConfig.text && (
@@ -914,3 +894,38 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                             </div>
                           ))}
                         </div>
+                      )}
+                    </div>
+
+                    {/* Regenerate Button */}
+                    <div className="p-3 border-t border-gray-100">
+                      <button
+                        onClick={() => regenerateTemplate(template.product)}
+                        disabled={regeneratingProduct === template.product}
+                        className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                      >
+                        {regeneratingProduct === template.product ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Regenerating...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-4 h-4" />
+                            Regenerate
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductAwareTemplateGenerator;
