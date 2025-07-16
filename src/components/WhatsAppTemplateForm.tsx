@@ -119,16 +119,12 @@ const WhatsAppTemplateForm: React.FC = () => {
   };
 
   const validateForm = () => {
-    if (!formData.templateCategory) {
+    if (!formData.category) {
       setError('Please select a category');
       return false;
     }
     if (!formData.templateType) {
       setError('Please select a template type');
-      return false;
-    }
-    if (!formData.category) {
-      setError('Please select a Meta template category');
       return false;
     }
     if (!formData.goal) {
@@ -236,7 +232,6 @@ const WhatsAppTemplateForm: React.FC = () => {
   const resetForm = () => {
     setFormData({
       category: '',
-      templateCategory: '',
       templateType: '',
       carouselCards: '2',
       goal: '',
@@ -251,7 +246,8 @@ const WhatsAppTemplateForm: React.FC = () => {
         subtype: 'Static URL',
         text: '',
         url: ''
-      }
+      },
+      customPrompt: ''
     });
     setGeneratedContent('');
     setError(null);
@@ -288,8 +284,8 @@ const WhatsAppTemplateForm: React.FC = () => {
           </label>
           <p className="text-sm text-gray-600 mb-3">Select the category for this template</p>
           <select
-            value={formData.templateCategory}
-            onChange={(e) => handleInputChange('templateCategory', e.target.value)}
+            value={formData.category}
+            onChange={(e) => handleInputChange('category', e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors"
             required
           >
@@ -338,25 +334,6 @@ const WhatsAppTemplateForm: React.FC = () => {
             </select>
           </div>
         )}
-
-        {/* Template Type */}
-        <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
-            Meta Template Category <span className="text-red-500">*</span>
-          </label>
-          <p className="text-sm text-gray-600 mb-3">Select the Meta template category</p>
-          <select
-            value={formData.category}
-            onChange={(e) => handleInputChange('category', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors"
-            required
-          >
-            <option value="">Choose Meta category...</option>
-            {templateTypes.map(type => (
-              <option key={type.value} value={type.value}>{type.label}</option>
-            ))}
-          </select>
-        </div>
 
         {/* Use Case */}
         <div>
@@ -488,7 +465,7 @@ const WhatsAppTemplateForm: React.FC = () => {
             <input
               type="checkbox"
               checked={formData.addButtons}
-              onChange={(e) => handleInputChange('addButtons', e.target.checked)}
+              onChange={(e) => setFormData(prev => ({ ...prev, addButtons: e.target.checked }))}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
             />
             <span className="text-sm font-medium text-gray-900">Add Buttons to Template?</span>
@@ -500,7 +477,10 @@ const WhatsAppTemplateForm: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Button Type</label>
                 <select
                   value={formData.buttonConfig.type}
-                  onChange={(e) => handleInputChange('buttonConfig', {...formData.buttonConfig, type: e.target.value as 'CTA' | 'Quick Reply'})}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    buttonConfig: { ...prev.buttonConfig, type: e.target.value as 'CTA' | 'Quick Reply' }
+                  }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 >
                   <option value="CTA">CTA</option>
@@ -513,7 +493,10 @@ const WhatsAppTemplateForm: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">CTA Subtype</label>
                   <select
                     value={formData.buttonConfig.subtype}
-                    onChange={(e) => handleInputChange('buttonConfig', {...formData.buttonConfig, subtype: e.target.value as any})}
+                    onChange={(e) => setFormData(prev => ({ 
+                      ...prev, 
+                      buttonConfig: { ...prev.buttonConfig, subtype: e.target.value as any }
+                    }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                   >
                     <option value="Static URL">Static URL</option>
@@ -529,7 +512,10 @@ const WhatsAppTemplateForm: React.FC = () => {
                 <input
                   type="text"
                   value={formData.buttonConfig.text}
-                  onChange={(e) => handleInputChange('buttonConfig', {...formData.buttonConfig, text: e.target.value})}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    buttonConfig: { ...prev.buttonConfig, text: e.target.value }
+                  }))}
                   placeholder="e.g., Shop Now, Call Us"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 />
@@ -541,7 +527,10 @@ const WhatsAppTemplateForm: React.FC = () => {
                   <input
                     type="url"
                     value={formData.buttonConfig.url || ''}
-                    onChange={(e) => handleInputChange('buttonConfig', {...formData.buttonConfig, url: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({ 
+                      ...prev, 
+                      buttonConfig: { ...prev.buttonConfig, url: e.target.value }
+                    }))}
                     placeholder="https://example.com"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                   />
@@ -554,7 +543,10 @@ const WhatsAppTemplateForm: React.FC = () => {
                   <input
                     type="tel"
                     value={formData.buttonConfig.phone || ''}
-                    onChange={(e) => handleInputChange('buttonConfig', {...formData.buttonConfig, phone: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({ 
+                      ...prev, 
+                      buttonConfig: { ...prev.buttonConfig, phone: e.target.value }
+                    }))}
                     placeholder="+1234567890"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                   />
@@ -562,6 +554,21 @@ const WhatsAppTemplateForm: React.FC = () => {
               )}
             </div>
           )}
+        </div>
+
+        {/* Custom Prompt */}
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            Custom Instructions (Optional)
+          </label>
+          <p className="text-sm text-gray-600 mb-3">Add specific instructions for content generation</p>
+          <textarea
+            value={formData.customPrompt}
+            onChange={(e) => handleInputChange('customPrompt', e.target.value)}
+            placeholder="e.g., Focus on urgency, mention free shipping, use casual tone..."
+            rows={3}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors resize-none"
+          />
         </div>
 
         {/* Error Message */}
@@ -695,7 +702,8 @@ const WhatsAppTemplateForm: React.FC = () => {
               <div className="text-xs text-gray-500 text-right mt-2">
                 {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
-            }
+            </div>
+          </div>
           
           {/* Buttons (Outside message bubble) - Only show if user enabled them */}
           {formData.addButtons && formData.buttonConfig && formData.buttonConfig.text && (
@@ -716,56 +724,6 @@ const WhatsAppTemplateForm: React.FC = () => {
                   📞 Call Now
                 </button>
               )}
-            </div>
-          )}
-          
-          {/* Insert in Body CTA */}
-          <div className="mt-6 flex justify-center">
-            <button
-              onClick={insertInBody}
-              className="bg-[#00D4AA] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#00B896] transition-colors flex items-center gap-2 shadow-sm"
-            >
-              <CheckCircle className="w-5 h-5" />
-              Insert in Body
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default WhatsAppTemplateForm;
-                </div>
-              </div>
-            )}
-            
-            {/* Message Content */}
-            <div className="p-3">
-              <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line text-left">
-                {generatedContent}
-              </div>
-              
-              {/* Footer */}
-              {formData.footer && (
-                <div className="mt-3 pt-2 border-t border-gray-100 text-xs text-gray-600">
-                  {formData.footer}
-                </div>
-              )}
-              
-              {/* Timestamp */}
-              <div className="text-xs text-gray-500 text-right mt-2">
-                1:04 AM
-              </div>
-            </div>
-          </div>
-          
-          {/* Buttons (Outside message bubble) */}
-          {formData.addButtons && formData.buttonConfig && formData.buttonConfig.text && (
-            <div className="mt-2 space-y-1 max-w-sm ml-auto">
-              <button className="w-full bg-white border border-gray-300 text-blue-600 py-2 px-4 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
-                {formData.buttonConfig.text}
-              </button>
             </div>
           )}
           
