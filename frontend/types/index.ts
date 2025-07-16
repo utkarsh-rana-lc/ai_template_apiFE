@@ -6,6 +6,7 @@ export interface FormData {
   language: string;
   tone: string;
   variables: string[];
+  templateType?: string;
 }
 
 export interface TemplateFormProps {
