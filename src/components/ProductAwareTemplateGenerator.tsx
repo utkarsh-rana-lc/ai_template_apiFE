@@ -72,6 +72,8 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
   });
   const [category, setCategory] = useState('');
   const [templateType, setTemplateType] = useState('');
+  const [carouselType, setCarouselType] = useState<'Image' | 'Video'>('Image');
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [carouselCards, setCarouselCards] = useState('2');
 
   const [generatedTemplates, setGeneratedTemplates] = useState<GeneratedTemplate[]>([]);
@@ -530,6 +532,39 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
               </select>
             </div>
 
+            {/* Carousel Type - Only show when Carousel is selected */}
+            {templateType === 'Carousel' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Carousel Type <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="carouselType"
+                      value="Image"
+                      checked={carouselType === 'Image'}
+                      onChange={(e) => setCarouselType(e.target.value as 'Image' | 'Video')}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 mr-2"
+                    />
+                    <span className="text-sm text-gray-700">Image Carousel</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="carouselType"
+                      value="Video"
+                      checked={carouselType === 'Video'}
+                      onChange={(e) => setCarouselType(e.target.value as 'Image' | 'Video')}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 mr-2"
+                    />
+                    <span className="text-sm text-gray-700">Video Carousel</span>
+                  </label>
+                </div>
+              </div>
+            )}
+
             {/* Carousel Cards Count */}
             {templateType === 'Carousel' && (
               <div>
@@ -545,6 +580,27 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                     <option key={num} value={num}>{num} Cards</option>
                   ))}
                 </select>
+              </div>
+            )}
+
+            {/* Video Upload - Show when Video Carousel or Video Template is selected */}
+            {(templateType === 'Video' || (templateType === 'Carousel' && carouselType === 'Video')) && (
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Upload Video <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => e.target.files?.[0] && setVideoFile(e.target.files[0])}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {videoFile && (
+                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+                    <span className="text-green-600">✅</span>
+                    <span className="text-sm text-green-700">Video uploaded: {videoFile.name}</span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -857,8 +913,18 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                         
                         {templateType === 'Video' && (
                           <div className="bg-black rounded-t-lg h-24 flex items-center justify-center relative">
-                            <div className="text-white text-2xl">▶</div>
-                            <div className="absolute bottom-1 right-1 text-white text-xs">0:15</div>
+                            {videoFile ? (
+                              <video 
+                                src={URL.createObjectURL(videoFile)} 
+                                className="w-full h-full object-cover rounded-t-lg"
+                                controls
+                              />
+                            ) : (
+                              <div className="text-white text-2xl">▶️</div>
+                            )}
+                            <div className="absolute bottom-1 right-1 text-white text-xs">
+                              {videoFile ? '0:15' : 'Video'}
+                            </div>
                           </div>
                         )}
                         
@@ -871,16 +937,40 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                         
                         {templateType === 'Carousel' && (
                           <div className="bg-gray-100 rounded-t-lg h-20 border-b">
-                            <div className="flex overflow-x-auto p-2 space-x-2">
-                              {Array.from({length: parseInt(carouselCards)}, (_, i) => (
-                                <div key={i} className="flex-shrink-0 w-12 h-12 bg-white rounded border flex flex-col items-center justify-center">
-                                  <div className="text-xs text-gray-400">{i + 1}</div>
-                                  <div className="text-xs text-gray-600">🖼️</div>
-                                </div>
-                              ))}
+                            {/* Horizontal Scrolling Cards */}
+                            <div className="overflow-x-auto scrollbar-hide">
+                              <div className="flex space-x-2 p-2" style={{ width: `${parseInt(carouselCards) * 264}px` }}>
+                                {Array.from({length: parseInt(carouselCards)}, (_, i) => (
+                                  <div key={i} className="flex-shrink-0 w-64 bg-white rounded border">
+                                    {/* Card Media */}
+                                    <div className="h-20 bg-gray-200 rounded-t flex items-center justify-center">
+                                      {carouselType === 'Video' ? (
+                                        videoFile ? (
+                                          <video 
+                                            src={URL.createObjectURL(videoFile)} 
+                                            className="w-full h-full object-cover rounded-t"
+                                          />
+                                        ) : (
+                                          <div className="text-gray-600">🎥</div>
+                                        )
+                                      ) : (
+                                        <div className="text-gray-600">🖼️</div>
+                                      )}
+                                    </div>
+                                    
+                                    {/* Card Content Preview */}
+                                    <div className="p-1">
+                                      <div className="text-xs text-gray-600">Card {i + 1}</div>
+                                      <div className="text-xs text-gray-800 truncate">
+                                        Content for card {i + 1}...
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                             <div className="absolute bottom-1 right-1 text-xs text-gray-600 bg-white px-1 rounded">
-                              {carouselCards} cards
+                              {carouselCards} {carouselType.toLowerCase()} cards
                             </div>
                           </div>
                         )}
