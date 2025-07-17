@@ -178,6 +178,7 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
       prev.map(t => t.product === productName ? { ...t, content: newContent } : t)
     );
   };
+  
   const generateTemplates = async () => {
     if (!selectedProducts.length || !useCase || !tone || !language || !category || !templateType) {
       alert('Please fill in all required fields including Category and Template Type, and select at least one product');
@@ -737,86 +738,86 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
             {/* Add Buttons Toggle */}
             {templateType !== 'Carousel' && (
               <div>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={addButtons}
-                  onChange={(e) => setAddButtons(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
-                />
-                <span className="text-sm font-medium text-gray-900">Add Buttons to Template?</span>
-              </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={addButtons}
+                    onChange={(e) => setAddButtons(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
+                  />
+                  <span className="text-sm font-medium text-gray-900">Add Buttons to Template?</span>
+                </label>
 
-              {addButtons && (
-                <div className="mt-4 space-y-3 p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Button Type</label>
-                    <select
-                      value={buttonConfig.type}
-                      onChange={(e) => setButtonConfig({...buttonConfig, type: e.target.value as 'CTA' | 'Quick Reply'})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    >
-                      <option value="CTA">CTA</option>
-                      <option value="Quick Reply">Quick Reply</option>
-                    </select>
-                  </div>
-
-                  {buttonConfig.type === 'CTA' && (
+                {addButtons && (
+                  <div className="mt-4 space-y-3 p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">CTA Subtype</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Button Type</label>
                       <select
-                        value={buttonConfig.subtype}
-                        onChange={(e) => setButtonConfig({...buttonConfig, subtype: e.target.value as any})}
+                        value={buttonConfig.type}
+                        onChange={(e) => setButtonConfig({...buttonConfig, type: e.target.value as 'CTA' | 'Quick Reply'})}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                       >
-                        <option value="Static URL">Static URL</option>
-                        <option value="Dynamic URL">Dynamic URL</option>
-                        <option value="Copy Code">Copy Code</option>
-                        <option value="Phone Number">Phone Number</option>
+                        <option value="CTA">CTA</option>
+                        <option value="Quick Reply">Quick Reply</option>
                       </select>
                     </div>
-                  )}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
-                    <input
-                      type="text"
-                      value={buttonConfig.text}
-                      onChange={(e) => setButtonConfig({...buttonConfig, text: e.target.value})}
-                      placeholder="e.g., Shop Now, Call Us"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
+                    {buttonConfig.type === 'CTA' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">CTA Subtype</label>
+                        <select
+                          value={buttonConfig.subtype}
+                          onChange={(e) => setButtonConfig({...buttonConfig, subtype: e.target.value as any})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        >
+                          <option value="Static URL">Static URL</option>
+                          <option value="Dynamic URL">Dynamic URL</option>
+                          <option value="Copy Code">Copy Code</option>
+                          <option value="Phone Number">Phone Number</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
+                      <input
+                        type="text"
+                        value={buttonConfig.text}
+                        onChange={(e) => setButtonConfig({...buttonConfig, text: e.target.value})}
+                        placeholder="e.g., Shop Now, Call Us"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      />
+                    </div>
+
+                    {buttonConfig.type === 'CTA' && buttonConfig.subtype?.includes('URL') && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                        <input
+                          type="url"
+                          value={buttonConfig.url || ''}
+                          onChange={(e) => setButtonConfig({...buttonConfig, url: e.target.value})}
+                          placeholder="https://example.com"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        />
+                      </div>
+                    )}
+
+                    {buttonConfig.type === 'CTA' && buttonConfig.subtype === 'Phone Number' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <input
+                          type="tel"
+                          value={buttonConfig.phone || ''}
+                          onChange={(e) => setButtonConfig({...buttonConfig, phone: e.target.value})}
+                          placeholder="+1234567890"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        />
+                      </div>
+                    )}
                   </div>
-
-                  {buttonConfig.type === 'CTA' && buttonConfig.subtype?.includes('URL') && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
-                      <input
-                        type="url"
-                        value={buttonConfig.url || ''}
-                        onChange={(e) => setButtonConfig({...buttonConfig, url: e.target.value})}
-                        placeholder="https://example.com"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                      />
-                    </div>
-                  )}
-
-                  {buttonConfig.type === 'CTA' && buttonConfig.subtype === 'Phone Number' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                      <input
-                        type="tel"
-                        value={buttonConfig.phone || ''}
-                        onChange={(e) => setButtonConfig({...buttonConfig, phone: e.target.value})}
-                        placeholder="+1234567890"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                      />
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             )}
-            </div>
 
             {/* Generate Button */}
             <button
