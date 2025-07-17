@@ -536,32 +536,16 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
             {templateType === 'Carousel' && (
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Carousel Type <span className="text-red-500">*</span>
+                  Type <span className="text-red-500">*</span>
                 </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="carouselType"
-                      value="Image"
-                      checked={carouselType === 'Image'}
-                      onChange={(e) => setCarouselType(e.target.value as 'Image' | 'Video')}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 mr-2"
-                    />
-                    <span className="text-sm text-gray-700">Image Carousel</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="carouselType"
-                      value="Video"
-                      checked={carouselType === 'Video'}
-                      onChange={(e) => setCarouselType(e.target.value as 'Image' | 'Video')}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 mr-2"
-                    />
-                    <span className="text-sm text-gray-700">Video Carousel</span>
-                  </label>
-                </div>
+                <select
+                  value={carouselType}
+                  onChange={(e) => setCarouselType(e.target.value as 'Image' | 'Video')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                >
+                  <option value="Image">Image</option>
+                  <option value="Video">Video</option>
+                </select>
               </div>
             )}
 

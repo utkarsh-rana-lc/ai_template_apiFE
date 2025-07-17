@@ -21,7 +21,7 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // New state for carousel and media
+  // Carousel and media state
   const [carouselType, setCarouselType] = useState<'Image' | 'Video'>('Image');
   const [carouselCards, setCarouselCards] = useState('2');
   const [carouselBodyContent, setCarouselBodyContent] = useState('');
@@ -256,58 +256,123 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
           </select>
         </div>
 
-        {/* Carousel Type - Only show when Carousel is selected */}
+        {/* Carousel Configuration - Show when Carousel is selected */}
         {formData.templateType === 'Carousel' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Carousel Type <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="carouselType"
-                  value="Image"
-                  checked={carouselType === 'Image'}
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-orange-600">•</span>
+              <h3 className="text-sm font-bold text-gray-900">Configure Carousel Cards</h3>
+              <div className="w-4 h-4 bg-gray-400 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs">i</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4 mb-4">
+              {/* Number of Cards */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">No of Cards</label>
+                <select
+                  value={carouselCards}
+                  onChange={(e) => setCarouselCards(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                >
+                  {[2,3,4,5,6,7,8,9,10].map(num => (
+                    <option key={num} value={num}>{num} cards</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Carousel Type Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <select
+                  value={carouselType}
                   onChange={(e) => setCarouselType(e.target.value as 'Image' | 'Video')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 mr-2"
-                />
-                <span className="text-sm text-gray-700">Image Carousel</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="carouselType"
-                  value="Video"
-                  checked={carouselType === 'Video'}
-                  onChange={(e) => setCarouselType(e.target.value as 'Image' | 'Video')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 mr-2"
-                />
-                <span className="text-sm text-gray-700">Video Carousel</span>
-              </label>
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                >
+                  <option value="Image">Image</option>
+                  <option value="Video">Video</option>
+                </select>
+              </div>
+
+              {/* Button 1 Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <span className="text-red-500">•</span> Button 1 Type
+                </label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900">
+                  <option value="Quick reply">Quick reply</option>
+                  <option value="CTA">CTA</option>
+                </select>
+              </div>
+
+              {/* Button 2 Type (Optional) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Button 2 Type (Optional)</label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900">
+                  <option value="">Select option</option>
+                  <option value="Quick reply">Quick reply</option>
+                  <option value="CTA">CTA</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Card Number Tabs */}
+            <div className="flex gap-2 mb-4">
+              {Array.from({length: parseInt(carouselCards)}, (_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`px-3 py-1 rounded text-sm font-medium ${
+                    i === 1 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+
+            {/* Body Section */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-red-500">•</span>
+                <label className="text-sm font-bold text-gray-900">Body</label>
+                <div className="w-4 h-4 bg-gray-400 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs">i</span>
+                </div>
+              </div>
+              <textarea
+                value={carouselBodyContent}
+                onChange={(e) => setCarouselBodyContent(e.target.value.slice(0, 200))}
+                placeholder="Enter carousel body content..."
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              />
+              <div className="text-xs text-gray-500 mt-1">{carouselBodyContent.length}/200 characters</div>
+            </div>
+
+            {/* Individual Card Contents */}
+            <div className="space-y-4">
+              {carouselCardContents.map((content, index) => (
+                <div key={index}>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">
+                    Card {index + 1}
+                  </label>
+                  <textarea
+                    value={content}
+                    onChange={(e) => handleCarouselCardChange(index, e.target.value.slice(0, 160))}
+                    placeholder={`Enter content for card ${index + 1}...`}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  />
+                  <div className="text-xs text-gray-500 mt-1">{content.length}/160 characters</div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Carousel Cards Count */}
-        {formData.templateType === 'Carousel' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Number of Cards in Carousel <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={carouselCards}
-              onChange={(e) => setCarouselCards(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-            >
-              {[2,3,4,5,6,7,8,9,10].map(num => (
-                <option key={num} value={num}>{num} Cards</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Video Upload - Show when Video Template or Video Carousel is selected */}
+        {/* Video Upload - Show when Video Template OR Video Carousel is selected */}
         {(formData.templateType === 'Video' || (formData.templateType === 'Carousel' && carouselType === 'Video')) && (
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -417,51 +482,6 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                   </button>
                 </div>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* Carousel Body Content */}
-        {formData.templateType === 'Carousel' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Carousel Body Content <span className="text-red-500">*</span>
-            </label>
-            <p className="text-sm text-gray-600 mb-2">Main message that introduces the carousel (max 200 characters)</p>
-            <textarea
-              value={carouselBodyContent}
-              onChange={(e) => setCarouselBodyContent(e.target.value.slice(0, 200))}
-              placeholder="e.g., Browse our amazing collection below:"
-              rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-            />
-            <div className="text-xs text-gray-500 mt-1">{carouselBodyContent.length}/200 characters</div>
-          </div>
-        )}
-
-        {/* Carousel Card Contents */}
-        {formData.templateType === 'Carousel' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Carousel Card Contents <span className="text-red-500">*</span>
-            </label>
-            <p className="text-sm text-gray-600 mb-3">Content for each carousel card (max 160 characters each)</p>
-            <div className="space-y-3">
-              {carouselCardContents.map((content, index) => (
-                <div key={index}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Card {index + 1} Content
-                  </label>
-                  <textarea
-                    value={content}
-                    onChange={(e) => handleCarouselCardChange(index, e.target.value.slice(0, 160))}
-                    placeholder={`Content for card ${index + 1}...`}
-                    rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
-                  />
-                  <div className="text-xs text-gray-500 mt-1">{content.length}/160 characters</div>
-                </div>
-              ))}
             </div>
           </div>
         )}
@@ -636,120 +656,115 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
         </div>
       </form>
 
-      {/* Generated Content Display with WhatsApp Preview */}
+      {/* WhatsApp Preview */}
       {generatedContent && (
-        <div className="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Template Preview</h3>
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Preview</h3>
           
-          {/* WhatsApp-style Preview */}
-          <div className="bg-[#e5ddd5] p-4 rounded-lg mb-4">
-            <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto relative">
-              
-              {/* Media Section based on Template Type */}
-              {formData.templateType === 'Image' && imageFile && (
-                <div className="rounded-t-lg overflow-hidden">
-                  <img 
-                    src={URL.createObjectURL(imageFile)} 
-                    alt="Template image"
-                    className="w-full h-48 object-cover"
-                  />
-                </div>
-              )}
-              
-              {formData.templateType === 'Video' && videoFile && (
-                <div className="rounded-t-lg overflow-hidden">
-                  <video 
-                    src={URL.createObjectURL(videoFile)} 
-                    className="w-full h-48 object-cover"
-                    controls
-                  />
-                </div>
-              )}
-              
-              {formData.templateType === 'Document' && documentFile && (
-                <div className="bg-gray-100 rounded-t-lg p-4 border-b flex items-center gap-3">
-                  <div className="text-2xl">📄</div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">{documentFile.name}</div>
-                    <div className="text-xs text-gray-500">{(documentFile.size / 1024).toFixed(1)} KB</div>
-                  </div>
-                </div>
-              )}
-              
-              {formData.templateType === 'Carousel' && (
-                <div className="bg-gray-100 rounded-t-lg border-b">
-                  {/* Horizontal Scrolling Cards */}
-                  <div className="overflow-x-auto scrollbar-hide">
-                    <div className="flex space-x-2 p-3" style={{ width: `${parseInt(carouselCards) * 200}px` }}>
-                      {carouselCardContents.map((cardContent, index) => (
-                        <div key={index} className="flex-shrink-0 w-48 bg-white rounded border shadow-sm">
-                          {/* Card Media */}
-                          <div className="h-24 bg-gray-200 rounded-t flex items-center justify-center">
-                            {carouselType === 'Video' ? (
-                              videoFile ? (
-                                <video 
-                                  src={URL.createObjectURL(videoFile)} 
-                                  className="w-full h-full object-cover rounded-t"
-                                />
-                              ) : (
-                                <div className="text-gray-600 text-2xl">🎥</div>
-                              )
-                            ) : (
-                              <div className="text-gray-600 text-2xl">🖼️</div>
-                            )}
-                          </div>
-                          
-                          {/* Card Content */}
-                          <div className="p-2">
-                            <div className="text-xs font-medium text-gray-900 mb-1">Card {index + 1}</div>
-                            <div className="text-xs text-gray-700 leading-tight">
-                              {cardContent || `Content for card ${index + 1}...`}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {formData.templateType === 'Limited Time Offer' && (
-                <div className="bg-red-100 rounded-t-lg p-2 border-b border-red-200">
-                  <div className="text-red-600 text-xs font-medium text-center">⏰ LIMITED TIME OFFER</div>
-                </div>
-              )}
-              
-              {/* Message Content */}
-              <div className="p-4">
-                {formData.templateType === 'Carousel' && carouselBodyContent ? (
-                  <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line mb-2">
-                    {carouselBodyContent}
-                  </div>
-                ) : null}
-                
+          <div className="bg-[#e5ddd5] p-4 rounded-lg">
+            {/* Body Message */}
+            {formData.templateType === 'Carousel' && carouselBodyContent && (
+              <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto mb-2 p-3">
                 <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
-                  {generatedContent}
+                  {carouselBodyContent}
                 </div>
-                
-                {/* Character Count */}
-                <div className="text-xs text-gray-400 mt-2">
-                  {generatedContent.length}/1024 characters
-                </div>
-                
-                {/* Timestamp */}
                 <div className="text-xs text-gray-500 text-right mt-2">
-                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  9:56 AM
                 </div>
               </div>
-            </div>
-          </div>
-          
-          {/* Raw Content */}
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">Raw Template Content:</h4>
-            <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
-              {generatedContent}
-            </pre>
+            )}
+
+            {/* Carousel Cards or Single Message */}
+            {formData.templateType === 'Carousel' ? (
+              <div className="space-y-2">
+                {carouselCardContents.map((cardContent, index) => (
+                  <div key={index} className="bg-white rounded-lg shadow-sm max-w-sm ml-auto">
+                    {/* Video/Image Section */}
+                    <div className="bg-black rounded-t-lg h-48 flex items-center justify-center relative">
+                      {carouselType === 'Video' && videoFile ? (
+                        <video 
+                          src={URL.createObjectURL(videoFile)} 
+                          className="w-full h-full object-cover rounded-t-lg"
+                          controls
+                        />
+                      ) : carouselType === 'Video' ? (
+                        <div className="text-white text-4xl">▶️</div>
+                      ) : (
+                        <div className="text-white text-4xl">🖼️</div>
+                      )}
+                      
+                      {/* Video Controls Overlay */}
+                      {carouselType === 'Video' && (
+                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white">
+                          <button className="text-2xl">▶</button>
+                          <button className="text-xl">🔇</button>
+                          <button className="text-xl">⛶</button>
+                          <button className="text-xl">⋮</button>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Card Content */}
+                    <div className="p-3">
+                      <div className="text-sm font-medium text-gray-900 mb-1">Card {index + 1}</div>
+                      <div className="text-sm text-gray-700 leading-relaxed">
+                        {cardContent || `Content for card ${index + 1}...`}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto">
+                {/* Media Section for other template types */}
+                {formData.templateType === 'Video' && videoFile && (
+                  <div className="rounded-t-lg overflow-hidden">
+                    <video 
+                      src={URL.createObjectURL(videoFile)} 
+                      className="w-full h-48 object-cover"
+                      controls
+                    />
+                  </div>
+                )}
+                
+                {formData.templateType === 'Image' && imageFile && (
+                  <div className="rounded-t-lg overflow-hidden">
+                    <img 
+                      src={URL.createObjectURL(imageFile)} 
+                      alt="Template image"
+                      className="w-full h-48 object-cover"
+                    />
+                  </div>
+                )}
+                
+                {formData.templateType === 'Document' && documentFile && (
+                  <div className="bg-gray-100 rounded-t-lg p-4 border-b flex items-center gap-3">
+                    <div className="text-2xl">📄</div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{documentFile.name}</div>
+                      <div className="text-xs text-gray-500">{(documentFile.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                  </div>
+                )}
+                
+                {formData.templateType === 'Limited Time Offer' && (
+                  <div className="bg-red-100 rounded-t-lg p-2 border-b border-red-200">
+                    <div className="text-red-600 text-xs font-medium text-center">⏰ LIMITED TIME OFFER</div>
+                  </div>
+                )}
+                
+                {/* Message Content */}
+                <div className="p-4">
+                  <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
+                    {generatedContent}
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 text-right mt-2">
+                    9:56 AM
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
