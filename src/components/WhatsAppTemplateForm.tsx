@@ -26,9 +26,23 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
   const [carouselCards, setCarouselCards] = useState('2');
   const [carouselBodyContent, setCarouselBodyContent] = useState('');
   const [carouselCardContents, setCarouselCardContents] = useState<string[]>(['', '']);
+  const [carouselCardButtons, setCarouselCardButtons] = useState<Array<{type: string, text: string}>>([
+    {type: 'Quick Reply', text: ''},
+    {type: 'Quick Reply', text: ''}
+  ]);
+  const [activeCardTab, setActiveCardTab] = useState(0);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
+
+  // Regular button config (hidden for carousel)
+  const [addButtons, setAddButtons] = useState(false);
+  const [buttonConfig, setButtonConfig] = useState({
+    type: 'CTA',
+    subtype: 'Static URL',
+    text: '',
+    url: ''
+  });
 
   const templateTypes = [
     { value: 'Text', label: 'Text' },
@@ -69,7 +83,7 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
     { value: 'Discount Code', label: 'Discount Code' }
   ];
 
-  // Update carousel card contents when card count changes
+  // Update carousel card contents and buttons when card count changes
   useEffect(() => {
     const cardCount = parseInt(carouselCards);
     setCarouselCardContents(prev => {
@@ -79,7 +93,20 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
       }
       return newContents.slice(0, cardCount);
     });
-  }, [carouselCards]);
+    
+    setCarouselCardButtons(prev => {
+      const newButtons = [...prev];
+      while (newButtons.length < cardCount) {
+        newButtons.push({type: 'Quick Reply', text: ''});
+      }
+      return newButtons.slice(0, cardCount);
+    });
+    
+    // Reset active tab if it's beyond the new card count
+    if (activeCardTab >= cardCount) {
+      setActiveCardTab(0);
+    }
+  }, [carouselCards, activeCardTab]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -113,6 +140,14 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
       const newContents = [...prev];
       newContents[index] = content;
       return newContents;
+    });
+  };
+
+  const handleCarouselButtonChange = (index: number, field: 'type' | 'text', value: string) => {
+    setCarouselCardButtons(prev => {
+      const newButtons = [...prev];
+      newButtons[index] = { ...newButtons[index], [field]: value };
+      return newButtons;
     });
   };
 
@@ -173,7 +208,8 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
         carouselType: formData.templateType === 'Carousel' ? carouselType : undefined,
         carouselCards: formData.templateType === 'Carousel' ? carouselCards : undefined,
         carouselBodyContent: formData.templateType === 'Carousel' ? carouselBodyContent : undefined,
-        carouselCardContents: formData.templateType === 'Carousel' ? carouselCardContents : undefined
+        carouselCardContents: formData.templateType === 'Carousel' ? carouselCardContents : undefined,
+        carouselCardButtons: formData.templateType === 'Carousel' ? carouselCardButtons : undefined
       };
 
       const response = await fetch(apiEndpoint, {
@@ -224,9 +260,15 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
     setCarouselCards('2');
     setCarouselBodyContent('');
     setCarouselCardContents(['', '']);
+    setCarouselCardButtons([
+      {type: 'Quick Reply', text: ''},
+      {type: 'Quick Reply', text: ''}
+    ]);
+    setActiveCardTab(0);
     setVideoFile(null);
     setImageFile(null);
     setDocumentFile(null);
+    setAddButtons(false);
   };
 
   return (
@@ -258,16 +300,17 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
 
         {/* Carousel Configuration - Show when Carousel is selected */}
         {formData.templateType === 'Carousel' && (
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-orange-600">•</span>
-              <h3 className="text-sm font-bold text-gray-900">Configure Carousel Cards</h3>
-              <div className="w-4 h-4 bg-gray-400 rounded-full flex items-center justify-center">
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <span className="text-orange-600 text-lg">•</span>
+              <h3 className="text-lg font-bold text-gray-900">Configure Carousel Cards</h3>
+              <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs">i</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4 mb-4">
+            {/* Carousel Configuration Grid */}
+            <div className="grid grid-cols-4 gap-4 mb-6">
               {/* Number of Cards */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">No of Cards</label>
@@ -318,13 +361,16 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
             </div>
 
             {/* Card Number Tabs */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-6">
               {Array.from({length: parseInt(carouselCards)}, (_, i) => (
                 <button
                   key={i}
                   type="button"
-                  className={`px-3 py-1 rounded text-sm font-medium ${
-                    i === 1 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  onClick={() => setActiveCardTab(i)}
+                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                    activeCardTab === i 
+                      ? 'bg-green-600 text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
                   {i + 1}
@@ -333,11 +379,11 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
             </div>
 
             {/* Body Section */}
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-red-500">•</span>
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-red-500 text-lg">•</span>
                 <label className="text-sm font-bold text-gray-900">Body</label>
-                <div className="w-4 h-4 bg-gray-400 rounded-full flex items-center justify-center">
+                <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs">i</span>
                 </div>
               </div>
@@ -346,28 +392,56 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 onChange={(e) => setCarouselBodyContent(e.target.value.slice(0, 200))}
                 placeholder="Enter carousel body content..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               />
               <div className="text-xs text-gray-500 mt-1">{carouselBodyContent.length}/200 characters</div>
             </div>
 
-            {/* Individual Card Contents */}
-            <div className="space-y-4">
-              {carouselCardContents.map((content, index) => (
-                <div key={index}>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Card {index + 1}
-                  </label>
-                  <textarea
-                    value={content}
-                    onChange={(e) => handleCarouselCardChange(index, e.target.value.slice(0, 160))}
-                    placeholder={`Enter content for card ${index + 1}...`}
-                    rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  />
-                  <div className="text-xs text-gray-500 mt-1">{content.length}/160 characters</div>
+            {/* Active Card Content */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h4 className="text-sm font-bold text-gray-900 mb-4">Card {activeCardTab + 1}</h4>
+              
+              {/* Card Content */}
+              <div className="mb-4">
+                <textarea
+                  value={carouselCardContents[activeCardTab] || ''}
+                  onChange={(e) => handleCarouselCardChange(activeCardTab, e.target.value.slice(0, 160))}
+                  placeholder={`Enter content for card ${activeCardTab + 1}...`}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                />
+                <div className="text-xs text-gray-500 mt-1">
+                  {(carouselCardContents[activeCardTab] || '').length}/160 characters
                 </div>
-              ))}
+              </div>
+
+              {/* Card Button Configuration */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type of action</label>
+                  <select
+                    value={carouselCardButtons[activeCardTab]?.type || 'Quick Reply'}
+                    onChange={(e) => handleCarouselButtonChange(activeCardTab, 'type', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                  >
+                    <option value="Quick Reply">Quick Reply</option>
+                    <option value="CTA">CTA</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="text-red-500">•</span> Button display text
+                  </label>
+                  <input
+                    type="text"
+                    value={carouselCardButtons[activeCardTab]?.text || ''}
+                    onChange={(e) => handleCarouselButtonChange(activeCardTab, 'text', e.target.value)}
+                    placeholder="Know More"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -599,6 +673,48 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
           )}
         </div>
 
+        {/* Regular Button Configuration - Hide when Carousel is selected */}
+        {formData.templateType !== 'Carousel' && (
+          <div>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={addButtons}
+                onChange={(e) => setAddButtons(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
+              />
+              <span className="text-sm font-medium text-gray-900">Add Buttons to Template?</span>
+            </label>
+
+            {addButtons && (
+              <div className="mt-4 space-y-3 p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Button Type</label>
+                  <select
+                    value={buttonConfig.type}
+                    onChange={(e) => setButtonConfig({...buttonConfig, type: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  >
+                    <option value="CTA">CTA</option>
+                    <option value="Quick Reply">Quick Reply</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
+                  <input
+                    type="text"
+                    value={buttonConfig.text}
+                    onChange={(e) => setButtonConfig({...buttonConfig, text: e.target.value})}
+                    placeholder="e.g., Shop Now, Call Us"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Error Message */}
         {error && (
           <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -662,14 +778,16 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Preview</h3>
           
           <div className="bg-[#e5ddd5] p-4 rounded-lg">
-            {/* Body Message */}
+            {/* Body Message - Always at top for carousel */}
             {formData.templateType === 'Carousel' && carouselBodyContent && (
-              <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto mb-2 p-3">
-                <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
-                  {carouselBodyContent}
-                </div>
-                <div className="text-xs text-gray-500 text-right mt-2">
-                  9:56 AM
+              <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto mb-3 overflow-hidden">
+                <div className="p-3">
+                  <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
+                    {carouselBodyContent}
+                  </div>
+                  <div className="text-xs text-gray-500 text-right mt-2">
+                    9:56 AM
+                  </div>
                 </div>
               </div>
             )}
@@ -678,9 +796,9 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
             {formData.templateType === 'Carousel' ? (
               <div className="space-y-2">
                 {carouselCardContents.map((cardContent, index) => (
-                  <div key={index} className="bg-white rounded-lg shadow-sm max-w-sm ml-auto">
+                  <div key={index} className="bg-white rounded-lg shadow-sm max-w-sm ml-auto overflow-hidden">
                     {/* Video/Image Section */}
-                    <div className="bg-black rounded-t-lg h-48 flex items-center justify-center relative">
+                    <div className="bg-black rounded-t-lg h-32 flex items-center justify-center relative">
                       {carouselType === 'Video' && videoFile ? (
                         <video 
                           src={URL.createObjectURL(videoFile)} 
@@ -706,16 +824,22 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                     
                     {/* Card Content */}
                     <div className="p-3">
-                      <div className="text-sm font-medium text-gray-900 mb-1">Card {index + 1}</div>
-                      <div className="text-sm text-gray-700 leading-relaxed">
+                      <div className="text-sm text-gray-900 leading-relaxed mb-3">
                         {cardContent || `Content for card ${index + 1}...`}
                       </div>
+                      
+                      {/* Card Button */}
+                      {carouselCardButtons[index]?.text && (
+                        <button className="w-full bg-blue-50 border border-blue-200 text-blue-600 py-2 px-4 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors">
+                          {carouselCardButtons[index].text}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto">
+              <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto overflow-hidden">
                 {/* Media Section for other template types */}
                 {formData.templateType === 'Video' && videoFile && (
                   <div className="rounded-t-lg overflow-hidden">
@@ -763,6 +887,15 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                     9:56 AM
                   </div>
                 </div>
+
+                {/* Regular Buttons (Outside message bubble) */}
+                {addButtons && buttonConfig.text && formData.templateType !== 'Carousel' && (
+                  <div className="p-3 pt-0">
+                    <button className="w-full bg-blue-50 border border-blue-200 text-blue-600 py-2 px-4 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors">
+                      {buttonConfig.text}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

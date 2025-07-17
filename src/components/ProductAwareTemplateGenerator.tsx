@@ -536,7 +536,7 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
             {templateType === 'Carousel' && (
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Type <span className="text-red-500">*</span>
+                  Carousel Type <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={carouselType}
@@ -735,7 +735,8 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
             </div>
 
             {/* Add Buttons Toggle */}
-            <div>
+            {templateType !== 'Carousel' && (
+              <div>
               <label className="flex items-center">
                 <input
                   type="checkbox"
@@ -813,7 +814,8 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
                     </div>
                   )}
                 </div>
-              )}
+              </div>
+            )}
             </div>
 
             {/* Generate Button */}
