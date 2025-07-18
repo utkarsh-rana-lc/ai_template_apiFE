@@ -112,6 +112,8 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
     setError(null);
     setSuccess(false);
+    // Clear generated content when form changes to force regeneration
+    setGeneratedContent('');
   };
 
   const handleVariableToggle = (variable: string) => {
@@ -123,6 +125,8 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
     }));
     setError(null);
     setSuccess(false);
+    // Clear generated content when variables change
+    setGeneratedContent('');
   };
 
   const handleFileUpload = (file: File, type: 'video' | 'image' | 'document') => {
@@ -798,26 +802,46 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 {carouselCardContents.map((cardContent, index) => (
                   <div key={index} className="bg-white rounded-lg shadow-sm max-w-sm ml-auto overflow-hidden">
                     {/* Video/Image Section */}
-                    <div className="bg-black rounded-t-lg h-32 flex items-center justify-center relative">
+                    <div className="bg-gray-900 rounded-t-lg h-40 flex items-center justify-center relative overflow-hidden">
                       {carouselType === 'Video' && videoFile ? (
                         <video 
                           src={URL.createObjectURL(videoFile)} 
-                          className="w-full h-full object-cover rounded-t-lg"
-                          controls
+                          className="w-full h-full object-cover"
+                          muted
+                          playsInline
                         />
                       ) : carouselType === 'Video' ? (
-                        <div className="text-white text-4xl">▶️</div>
+                        <div className="flex flex-col items-center text-white">
+                          <div className="text-4xl mb-2">▶️</div>
+                          <div className="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">Video {index + 1}</div>
+                        </div>
+                      ) : imageFile ? (
+                        <img 
+                          src={URL.createObjectURL(imageFile)} 
+                          alt={`Carousel card ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        <div className="text-white text-4xl">🖼️</div>
+                        <div className="flex flex-col items-center text-white">
+                          <div className="text-4xl mb-2">🖼️</div>
+                          <div className="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">Image {index + 1}</div>
+                        </div>
                       )}
                       
                       {/* Video Controls Overlay */}
                       {carouselType === 'Video' && (
-                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white">
-                          <button className="text-2xl">▶</button>
-                          <button className="text-xl">🔇</button>
-                          <button className="text-xl">⛶</button>
-                          <button className="text-xl">⋮</button>
+                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white text-sm">
+                          <div className="flex items-center space-x-2">
+                            <button className="w-8 h-8 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                              ▶
+                            </button>
+                            <span className="bg-black bg-opacity-50 px-2 py-1 rounded text-xs">0:15</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button className="w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-xs">🔇</button>
+                            <button className="w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-xs">⛶</button>
+                            <button className="w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-xs">⋮</button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -845,9 +869,13 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                   <div className="rounded-t-lg overflow-hidden">
                     <video 
                       src={URL.createObjectURL(videoFile)} 
-                      className="w-full h-48 object-cover"
-                      controls
+                      className="w-full h-40 object-cover"
+                      muted
+                      playsInline
                     />
+                    <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                      Video
+                    </div>
                   </div>
                 )}
                 
@@ -856,7 +884,7 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                     <img 
                       src={URL.createObjectURL(imageFile)} 
                       alt="Template image"
-                      className="w-full h-48 object-cover"
+                      className="w-full h-40 object-cover"
                     />
                   </div>
                 )}
