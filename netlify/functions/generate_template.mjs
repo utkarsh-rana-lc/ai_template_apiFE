@@ -223,7 +223,8 @@ VARIABLES: NONE SELECTED
 VARIABLES (MAXIMUM ${maxVariables}):
 ${variableList}
 - Use ONLY these variables: ${approvedVariables.join(', ')}
-- Each variable must be used meaningfully
+- Each variable MUST be used at least once in the content
+- Use ALL selected variables: ${approvedVariables.join(', ')}
 - NO unauthorized variables allowed`;
   }
 
@@ -292,12 +293,13 @@ ${lengthGuidance}
 
 CRITICAL REQUIREMENTS:
 1. MAXIMUM 1024 characters for message body (STRICT LIMIT)
-2. Use ONLY approved variables: ${approvedVariables.join(', ')}
+2. Use ALL approved variables: ${approvedVariables.join(', ')} - EVERY SINGLE ONE
 3. Follow ${templateType} template format exactly
 4. Comply with ${category} category restrictions
 5. Match ${tone} tone consistently
 6. Include strategic emojis (2-3 maximum for brevity)
 7. Use proper line breaks (\\n for single, \\n\\n for paragraph)
+8. MANDATORY: Include every selected variable in meaningful context
 
 CONTENT STRUCTURE FOR ${templateType}:
 ${getContentStructure(templateType, goal, maxVariables)}

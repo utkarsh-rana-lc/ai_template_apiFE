@@ -348,6 +348,40 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <span className="text-red-500">•</span> Button 1 Type
                 </label>
+                <select 
+                  value={carouselCardButtons[0]?.type || 'Quick Reply'}
+                  onChange={(e) => handleCarouselButtonChange(0, 'type', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                >
+                  <option value="Quick Reply">Quick reply</option>
+                  <option value="CTA">CTA</option>
+                </select>
+              </div>
+
+              {/* Button 2 Type (Optional) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Button 2 Type (Optional)</label>
+                <select 
+                  value={carouselCardButtons[1]?.type || ''}
+                  onChange={(e) => {
+                    if (carouselCardButtons.length < 2) {
+                      setCarouselCardButtons(prev => [...prev, {type: e.target.value, text: ''}]);
+                    } else {
+                      handleCarouselButtonChange(1, 'type', e.target.value);
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                >
+                  <option value="">Select option</option>
+                  <option value="Quick Reply">Quick reply</option>
+                  <option value="CTA">CTA</option>
+                </select>
+              </div>
+              {/* Button 1 Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <span className="text-red-500">•</span> Button 1 Type
+                </label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900">
                   <option value="Quick reply">Quick reply</option>
                   <option value="CTA">CTA</option>
@@ -843,7 +877,7 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 {carouselCardContents.map((cardContent, index) => (
                   <div key={index} className="bg-white rounded-lg shadow-sm max-w-sm ml-auto overflow-hidden">
                     {/* Video/Image Section */}
-                    <div className="bg-gray-900 rounded-t-lg h-40 flex items-center justify-center relative overflow-hidden">
+                    <div className="bg-gray-900 rounded-t-lg h-40 flex items-center justify-center relative overflow-hidden flex-shrink-0">
                       {carouselType === 'Video' && videoFile ? (
                         <video 
                           src={URL.createObjectURL(videoFile)} 
@@ -888,7 +922,7 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                     </div>
                     
                     {/* Card Content */}
-                    <div className="p-3">
+                    <div className="p-3 flex-shrink-0">
                       <div className="text-sm text-gray-900 leading-relaxed mb-3">
                         {cardContent || `Content for card ${index + 1}...`}
                       </div>
