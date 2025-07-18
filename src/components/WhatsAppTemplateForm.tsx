@@ -315,7 +315,7 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
             </div>
 
             {/* Carousel Configuration Grid */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               {/* Number of Cards */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">No of Cards</label>
@@ -343,14 +343,14 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 </select>
               </div>
 
-              {/* Button 1 Type */}
+              {/* Button 1 Type - ACTUALLY ADD THIS */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <span className="text-red-500">•</span> Button 1 Type
+                  <span className="text-red-500">*</span> Button 1 Type
                 </label>
                 <select 
-                  value={carouselCardButtons[0]?.type || 'Quick Reply'}
-                  onChange={(e) => handleCarouselButtonChange(0, 'type', e.target.value)}
+                  value={buttonConfig.type}
+                  onChange={(e) => setButtonConfig({...buttonConfig, type: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                 >
                   <option value="Quick Reply">Quick reply</option>
@@ -362,14 +362,8 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Button 2 Type (Optional)</label>
                 <select 
-                  value={carouselCardButtons[1]?.type || ''}
-                  onChange={(e) => {
-                    if (carouselCardButtons.length < 2) {
-                      setCarouselCardButtons(prev => [...prev, {type: e.target.value, text: ''}]);
-                    } else {
-                      handleCarouselButtonChange(1, 'type', e.target.value);
-                    }
-                  }}
+                  value={buttonConfig.subtype || ''}
+                  onChange={(e) => setButtonConfig({...buttonConfig, subtype: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                 >
                   <option value="">Select option</option>
@@ -439,8 +433,8 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Type of action</label>
                   <select
-                    value={carouselCardButtons[activeCardTab]?.type || 'Quick Reply'}
-                    onChange={(e) => handleCarouselButtonChange(activeCardTab, 'type', e.target.value)}
+                    value={buttonConfig.type}
+                    onChange={(e) => setButtonConfig({...buttonConfig, type: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                   >
                     <option value="Quick Reply">Quick Reply</option>
@@ -450,12 +444,12 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <span className="text-red-500">•</span> Button display text
+                    <span className="text-red-500">*</span> Button display text
                   </label>
                   <input
                     type="text"
-                    value={carouselCardButtons[activeCardTab]?.text || ''}
-                    onChange={(e) => handleCarouselButtonChange(activeCardTab, 'text', e.target.value)}
+                    value={buttonConfig.text}
+                    onChange={(e) => setButtonConfig({...buttonConfig, text: e.target.value})}
                     placeholder="Know More"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -837,11 +831,11 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 {carouselCardContents.map((cardContent, index) => (
                   <div key={index} className="bg-white rounded-lg shadow-sm max-w-sm ml-auto overflow-hidden">
                     {/* Video/Image Section */}
-                    <div className="bg-gray-900 rounded-t-lg h-40 flex items-center justify-center relative overflow-hidden flex-shrink-0">
+                    <div className="bg-gray-900 rounded-t-lg h-32 flex items-center justify-center relative overflow-hidden">
                       {carouselType === 'Video' && videoFile ? (
                         <video 
                           src={URL.createObjectURL(videoFile)} 
-                          className="w-full h-full object-cover"
+                          className="w-full h-32 object-cover"
                           muted
                           playsInline
                         />
@@ -854,7 +848,7 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                         <img 
                           src={URL.createObjectURL(imageFile)} 
                           alt={`Carousel card ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-32 object-cover"
                         />
                       ) : (
                         <div className="flex flex-col items-center text-white">
@@ -882,15 +876,15 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                     </div>
                     
                     {/* Card Content */}
-                    <div className="p-3 flex-shrink-0">
+                    <div className="p-3">
                       <div className="text-sm text-gray-900 leading-relaxed mb-3">
                         {cardContent || `Content for card ${index + 1}...`}
                       </div>
                       
                       {/* Card Button */}
-                      {carouselCardButtons[index]?.text && (
+                      {buttonConfig.text && (
                         <button className="w-full bg-blue-50 border border-blue-200 text-blue-600 py-2 px-4 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors">
-                          {carouselCardButtons[index].text}
+                          {buttonConfig.text}
                         </button>
                       )}
                     </div>
