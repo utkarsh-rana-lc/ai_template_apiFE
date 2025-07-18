@@ -363,6 +363,26 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                   <option value="CTA">CTA</option>
                 </select>
               </div>
+              {/* Button 1 Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <span className="text-red-500">•</span> Button 1 Type
+                </label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900">
+                  <option value="Quick reply">Quick reply</option>
+                  <option value="CTA">CTA</option>
+                </select>
+              </div>
+
+              {/* Button 2 Type (Optional) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Button 2 Type (Optional)</label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900">
+                  <option value="">Select option</option>
+                  <option value="Quick reply">Quick reply</option>
+                  <option value="CTA">CTA</option>
+                </select>
+              </div>
             </div>
 
             {/* Card Number Tabs */}
