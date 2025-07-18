@@ -314,8 +314,8 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
               </div>
             </div>
 
-            {/* Carousel Configuration Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {/* Carousel Configuration Grid - 4 columns */}
+            <div className="grid grid-cols-4 gap-4 mb-6">
               {/* Number of Cards */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">No of Cards</label>
@@ -330,7 +330,7 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 </select>
               </div>
 
-              {/* Carousel Type Dropdown */}
+              {/* Carousel Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
                 <select
@@ -343,14 +343,14 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 </select>
               </div>
 
-              {/* Button 1 Type - ACTUALLY ADD THIS */}
+              {/* Button 1 Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <span className="text-red-500">*</span> Button 1 Type
+                  <span className="text-red-500">•</span> Button 1 Type
                 </label>
                 <select 
-                  value={buttonConfig.type}
-                  onChange={(e) => setButtonConfig({...buttonConfig, type: e.target.value})}
+                  value={carouselCardButtons[0]?.type || 'Quick Reply'}
+                  onChange={(e) => handleCarouselButtonChange(0, 'type', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                 >
                   <option value="Quick Reply">Quick reply</option>
@@ -362,8 +362,8 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Button 2 Type (Optional)</label>
                 <select 
-                  value={buttonConfig.subtype || ''}
-                  onChange={(e) => setButtonConfig({...buttonConfig, subtype: e.target.value})}
+                  value={carouselCardButtons[1]?.type || ''}
+                  onChange={(e) => handleCarouselButtonChange(1, 'type', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                 >
                   <option value="">Select option</option>
@@ -416,6 +416,7 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
               
               {/* Card Content */}
               <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Card Content</label>
                 <textarea
                   value={carouselCardContents[activeCardTab] || ''}
                   onChange={(e) => handleCarouselCardChange(activeCardTab, e.target.value.slice(0, 160))}
@@ -431,10 +432,10 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
               {/* Card Button Configuration */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type of action</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Button Type</label>
                   <select
-                    value={buttonConfig.type}
-                    onChange={(e) => setButtonConfig({...buttonConfig, type: e.target.value})}
+                    value={carouselCardButtons[activeCardTab]?.type || 'Quick Reply'}
+                    onChange={(e) => handleCarouselButtonChange(activeCardTab, 'type', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                   >
                     <option value="Quick Reply">Quick Reply</option>
@@ -444,12 +445,12 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <span className="text-red-500">*</span> Button display text
+                    <span className="text-red-500">*</span> Button Text
                   </label>
                   <input
                     type="text"
-                    value={buttonConfig.text}
-                    onChange={(e) => setButtonConfig({...buttonConfig, text: e.target.value})}
+                    value={carouselCardButtons[activeCardTab]?.text || ''}
+                    onChange={(e) => handleCarouselButtonChange(activeCardTab, 'text', e.target.value)}
                     placeholder="Know More"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -827,69 +828,55 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
 
             {/* Carousel Cards or Single Message */}
             {formData.templateType === 'Carousel' ? (
-              <div className="space-y-2">
-                {carouselCardContents.map((cardContent, index) => (
-                  <div key={index} className="bg-white rounded-lg shadow-sm max-w-sm ml-auto overflow-hidden">
-                    {/* Video/Image Section */}
-                    <div className="bg-gray-900 rounded-t-lg h-32 flex items-center justify-center relative overflow-hidden">
-                      {carouselType === 'Video' && videoFile ? (
-                        <video 
-                          src={URL.createObjectURL(videoFile)} 
-                          className="w-full h-32 object-cover"
-                          muted
-                          playsInline
-                        />
-                      ) : carouselType === 'Video' ? (
-                        <div className="flex flex-col items-center text-white">
-                          <div className="text-4xl mb-2">▶️</div>
-                          <div className="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">Video {index + 1}</div>
-                        </div>
-                      ) : imageFile ? (
-                        <img 
-                          src={URL.createObjectURL(imageFile)} 
-                          alt={`Carousel card ${index + 1}`}
-                          className="w-full h-32 object-cover"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center text-white">
-                          <div className="text-4xl mb-2">🖼️</div>
-                          <div className="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">Image {index + 1}</div>
-                        </div>
-                      )}
-                      
-                      {/* Video Controls Overlay */}
-                      {carouselType === 'Video' && (
-                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white text-sm">
-                          <div className="flex items-center space-x-2">
-                            <button className="w-8 h-8 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-                              ▶
-                            </button>
-                            <span className="bg-black bg-opacity-50 px-2 py-1 rounded text-xs">0:15</span>
+              <div className="bg-gray-100 rounded-lg p-3">
+                <div className="text-xs text-gray-600 mb-2">Carousel Preview ({carouselCards} cards)</div>
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                  {Array.from({length: parseInt(carouselCards)}, (_, index) => (
+                    <div key={index} className="flex-shrink-0 w-64 bg-white rounded-lg shadow-sm overflow-hidden">
+                      {/* Media Section - Fixed Height */}
+                      <div className="h-32 bg-gray-900 flex items-center justify-center relative overflow-hidden">
+                        {carouselType === 'Video' && videoFile ? (
+                          <video 
+                            src={URL.createObjectURL(videoFile)} 
+                            className="w-full h-full object-cover"
+                            muted
+                            playsInline
+                          />
+                        ) : carouselType === 'Video' ? (
+                          <div className="flex flex-col items-center text-white">
+                            <div className="text-2xl mb-1">▶️</div>
+                            <div className="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">Video {index + 1}</div>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <button className="w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-xs">🔇</button>
-                            <button className="w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-xs">⛶</button>
-                            <button className="w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-xs">⋮</button>
+                        ) : imageFile ? (
+                          <img 
+                            src={URL.createObjectURL(imageFile)} 
+                            alt={`Card ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center text-white">
+                            <div className="text-2xl mb-1">🖼️</div>
+                            <div className="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">Image {index + 1}</div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Card Content */}
-                    <div className="p-3">
-                      <div className="text-sm text-gray-900 leading-relaxed mb-3">
-                        {cardContent || `Content for card ${index + 1}...`}
+                        )}
                       </div>
                       
-                      {/* Card Button */}
-                      {buttonConfig.text && (
-                        <button className="w-full bg-blue-50 border border-blue-200 text-blue-600 py-2 px-4 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors">
-                          {buttonConfig.text}
-                        </button>
-                      )}
+                      {/* Card Content - Fixed Container */}
+                      <div className="p-3 h-24 flex flex-col justify-between">
+                        <div className="text-xs text-gray-900 leading-tight overflow-hidden">
+                          {carouselCardContents[index] || `Card ${index + 1} content will appear here...`}
+                        </div>
+                        
+                        {/* Card Button */}
+                        {carouselCardButtons[index]?.text && (
+                          <button className="w-full bg-blue-50 border border-blue-200 text-blue-600 py-1 px-2 rounded text-xs font-medium mt-2">
+                            {carouselCardButtons[index].text}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto overflow-hidden">

@@ -76,54 +76,43 @@ You NEVER exceed character limits and ALWAYS follow Meta's exact specifications 
     
     // Handle carousel response
     if (body.templateType === 'Carousel') {
-      try {
-        // Try to parse as JSON for carousel cards
-        const parsedContent = JSON.parse(content);
-        if (parsedContent.cards && Array.isArray(parsedContent.cards)) {
-          return new Response(JSON.stringify({
-            content: parsedContent.intro || 'Browse our collection below:',
-            carouselCards: parsedContent.cards,
-            success: true,
-            characterCount: parsedContent.intro?.length || 0,
-            templateType: body.templateType
-          }), {
-            status: 200,
-            headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Content-Type': 'application/json'
-            }
-          });
+      const cardCount = parseInt(body.carouselCards || '2');
+      
+      // Generate individual card content with ALL variables used
+      const cards = Array.from({ length: cardCount }, (_, i) => {
+        let cardContent = '';
+        const maxVars = body.variables?.length || 0;
+        
+        if (maxVars === 0) {
+          cardContent = `Discover option ${i + 1}! ✨\n\nPerfect for ${body.goal.toLowerCase()}. Get yours today! 🛒`;
+        } else if (maxVars === 1) {
+          cardContent = `{{1}}, check out option ${i + 1}! ✨\n\nPerfect for ${body.goal.toLowerCase()}. Get yours today! 🛒`;
+        } else if (maxVars === 2) {
+          cardContent = `{{1}}, your {{2}} option ${i + 1} is here! ✨\n\nPerfect for ${body.goal.toLowerCase()}. Get yours today! 🛒`;
+        } else if (maxVars === 3) {
+          cardContent = `{{1}}, your {{2}} order {{3}} - option ${i + 1}! ✨\n\nGet yours today! 🛒`;
+        } else {
+          // Use all variables in rotation
+          const varStr = body.variables.map((_, idx) => `{{${idx+1}}}`).slice(0, 3).join(', ');
+          cardContent = `${varStr.split(',')[0]}, your ${varStr.split(',')[1] || 'item'} ${varStr.split(',')[2] || 'option'} ${i + 1}! ✨\n\nGet yours today! 🛒`;
         }
-      } catch (e) {
-        // If not JSON, treat as regular content and generate cards
-        const cardCount = parseInt(body.carouselCards || '2');
         
-        // Generate individual card content based on variables and use case
-        const cards = Array.from({ length: cardCount }, (_, i) => {
-          let cardContent = '';
-          if (body.variables && body.variables.length > 0) {
-            const varStr = body.variables.map((_, idx) => `{{${idx+1}}}`).join(', ');
-            cardContent = `${varStr.split(',')[0] || '{{1}}'}, discover our ${body.goal.toLowerCase()} option ${i + 1}! ✨\n\nPerfect for your needs. Get yours today! 🛒`;
-          } else {
-            cardContent = `Discover our amazing ${body.goal.toLowerCase()} option ${i + 1}! ✨\n\nPerfect for your needs. Get yours today! 🛒`;
-          }
-          return cardContent;
-        });
-        
-        return new Response(JSON.stringify({
-          content: content,
-          carouselCards: cards,
-          success: true,
-          characterCount: content.length,
-          templateType: body.templateType
-        }), {
-          status: 200,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json'
-          }
-        });
-      }
+        return cardContent;
+      });
+      
+      return new Response(JSON.stringify({
+        content: content,
+        carouselCards: cards,
+        success: true,
+        characterCount: content.length,
+        templateType: body.templateType
+      }), {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        }
+      });
     }
     
     // STRICT character validation
@@ -218,6 +207,11 @@ ${variableList}
 - Each variable MUST be used at least once in the content
 - Use ALL selected variables: ${approvedVariables.join(', ')}
 - NO unauthorized variables allowed`;
+- Use ONLY these variables: ${approvedVariables.join(', ')}
+- MANDATORY: Use ALL ${maxVariables} variables in the content
+- Each variable MUST appear at least once: ${approvedVariables.join(', ')}
+- NO unauthorized variables beyond ${approvedVariables.join(', ')} allowed
+- FAILURE TO USE ALL VARIABLES WILL RESULT IN REJECTION`;
   }
 
   // Get use case specific guidance
