@@ -76,23 +76,6 @@ You NEVER exceed character limits and ALWAYS follow Meta's exact specifications 
     
     // Handle carousel response
     if (body.templateType === 'Carousel') {
-      // Use user-provided content if available
-      if (body.carouselBodyContent && body.carouselCardContents && body.carouselCardContents.length > 0) {
-        return new Response(JSON.stringify({
-          content: body.carouselBodyContent,
-          carouselCards: body.carouselCardContents,
-          success: true,
-          characterCount: body.carouselBodyContent.length,
-          templateType: body.templateType
-        }), {
-          status: 200,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json'
-          }
-        });
-      }
-      
       try {
         // Try to parse as JSON for carousel cards
         const parsedContent = JSON.parse(content);
@@ -114,9 +97,18 @@ You NEVER exceed character limits and ALWAYS follow Meta's exact specifications 
       } catch (e) {
         // If not JSON, treat as regular content and generate cards
         const cardCount = parseInt(body.carouselCards || '2');
-        const cards = Array.from({ length: cardCount }, (_, i) => 
-          `Card ${i + 1}: ${content.substring(0, 100)}...`
-        );
+        
+        // Generate individual card content based on variables and use case
+        const cards = Array.from({ length: cardCount }, (_, i) => {
+          let cardContent = '';
+          if (body.variables && body.variables.length > 0) {
+            const varStr = body.variables.map((_, idx) => `{{${idx+1}}}`).join(', ');
+            cardContent = `${varStr.split(',')[0] || '{{1}}'}, discover our ${body.goal.toLowerCase()} option ${i + 1}! ✨\n\nPerfect for your needs. Get yours today! 🛒`;
+          } else {
+            cardContent = `Discover our amazing ${body.goal.toLowerCase()} option ${i + 1}! ✨\n\nPerfect for your needs. Get yours today! 🛒`;
+          }
+          return cardContent;
+        });
         
         return new Response(JSON.stringify({
           content: content,
