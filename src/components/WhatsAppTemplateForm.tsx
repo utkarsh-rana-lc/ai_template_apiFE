@@ -371,6 +371,34 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                   <option value="CTA">CTA</option>
                 </select>
               </div>
+              {/* Button 1 Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <span className="text-red-500">•</span> Button 1 Type
+                </label>
+                <select 
+                  value={carouselCardButtons[0]?.type || 'Quick Reply'}
+                  onChange={(e) => handleCarouselButtonChange(0, 'type', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                >
+                  <option value="Quick Reply">Quick reply</option>
+                  <option value="CTA">CTA</option>
+                </select>
+              </div>
+
+              {/* Button 2 Type (Optional) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Button 2 Type (Optional)</label>
+                <select 
+                  value={carouselCardButtons[1]?.type || ''}
+                  onChange={(e) => handleCarouselButtonChange(1, 'type', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                >
+                  <option value="">Select option</option>
+                  <option value="Quick Reply">Quick reply</option>
+                  <option value="CTA">CTA</option>
+                </select>
+              </div>
             </div>
 
             {/* Card Number Tabs */}
@@ -834,11 +862,11 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                   {Array.from({length: parseInt(carouselCards)}, (_, index) => (
                     <div key={index} className="flex-shrink-0 w-64 bg-white rounded-lg shadow-sm overflow-hidden">
                       {/* Media Section - Fixed Height */}
-                      <div className="h-32 bg-gray-900 flex items-center justify-center relative overflow-hidden">
+                      <div className="h-32 bg-gray-900 flex items-center justify-center relative overflow-hidden flex-shrink-0">
                         {carouselType === 'Video' && videoFile ? (
                           <video 
                             src={URL.createObjectURL(videoFile)} 
-                            className="w-full h-full object-cover"
+                            className="w-full h-32 object-cover"
                             muted
                             playsInline
                           />
@@ -851,7 +879,7 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                           <img 
                             src={URL.createObjectURL(imageFile)} 
                             alt={`Card ${index + 1}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-32 object-cover"
                           />
                         ) : (
                           <div className="flex flex-col items-center text-white">
@@ -862,22 +890,19 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                       </div>
                       
                       {/* Card Content - Fixed Container */}
-                      <div className="p-3 h-24 flex flex-col justify-between">
-                        <div className="text-xs text-gray-900 leading-tight overflow-hidden">
+                      <div className="p-3 h-24 flex flex-col justify-between overflow-hidden">
+                        <div className="text-xs text-gray-900 leading-tight overflow-hidden flex-1">
                           {carouselCardContents[index] || `Card ${index + 1} content will appear here...`}
                         </div>
                         
                         {/* Card Button */}
                         {carouselCardButtons[index]?.text && (
-                          <button className="w-full bg-blue-50 border border-blue-200 text-blue-600 py-1 px-2 rounded text-xs font-medium mt-2">
+                          <button className="w-full bg-blue-50 border border-blue-200 text-blue-600 py-1 px-2 rounded text-xs font-medium mt-2 flex-shrink-0">
                             {carouselCardButtons[index].text}
                           </button>
                         )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
             ) : (
               <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto overflow-hidden">
                 {/* Media Section for other template types */}

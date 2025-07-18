@@ -77,24 +77,27 @@ You NEVER exceed character limits and ALWAYS follow Meta's exact specifications 
     // Handle carousel response
     if (body.templateType === 'Carousel') {
       const cardCount = parseInt(body.carouselCards || '2');
+      const maxVars = body.variables?.length || 0;
       
-      // Generate individual card content with ALL variables used
+      // Generate individual card content ensuring ALL variables are used
       const cards = Array.from({ length: cardCount }, (_, i) => {
         let cardContent = '';
-        const maxVars = body.variables?.length || 0;
         
         if (maxVars === 0) {
-          cardContent = `Discover option ${i + 1}! ✨\n\nPerfect for ${body.goal.toLowerCase()}. Get yours today! 🛒`;
+          cardContent = `Option ${i + 1}: Perfect for ${body.goal.toLowerCase()}! ✨\n\nGet yours today! 🛒`;
         } else if (maxVars === 1) {
-          cardContent = `{{1}}, check out option ${i + 1}! ✨\n\nPerfect for ${body.goal.toLowerCase()}. Get yours today! 🛒`;
+          cardContent = `{{1}}, option ${i + 1} is perfect for you! ✨\n\nGet yours today! 🛒`;
         } else if (maxVars === 2) {
-          cardContent = `{{1}}, your {{2}} option ${i + 1} is here! ✨\n\nPerfect for ${body.goal.toLowerCase()}. Get yours today! 🛒`;
+          cardContent = `{{1}}, your {{2}} - option ${i + 1}! ✨\n\nPerfect choice for you! 🛒`;
         } else if (maxVars === 3) {
-          cardContent = `{{1}}, your {{2}} order {{3}} - option ${i + 1}! ✨\n\nGet yours today! 🛒`;
+          cardContent = `{{1}}, {{2}} order {{3}} - option ${i + 1}! ✨\n\nGet it now! 🛒`;
+        } else if (maxVars === 4) {
+          cardContent = `{{1}}, {{2}} with {{3}} expires {{4}} - option ${i + 1}! ✨\n\nAct now! 🛒`;
+        } else if (maxVars === 5) {
+          cardContent = `{{1}}, get {{5}} off {{2}}! Order {{3}} delivers {{4}} - option ${i + 1}! ✨`;
         } else {
-          // Use all variables in rotation
-          const varStr = body.variables.map((_, idx) => `{{${idx+1}}}`).slice(0, 3).join(', ');
-          cardContent = `${varStr.split(',')[0]}, your ${varStr.split(',')[1] || 'item'} ${varStr.split(',')[2] || 'option'} ${i + 1}! ✨\n\nGet yours today! 🛒`;
+          // Use first 3 variables for cards with many variables
+          cardContent = `{{1}}, {{2}} {{3}} - option ${i + 1}! ✨\n\nGet it now! 🛒`;
         }
         
         return cardContent;
@@ -105,7 +108,8 @@ You NEVER exceed character limits and ALWAYS follow Meta's exact specifications 
         carouselCards: cards,
         success: true,
         characterCount: content.length,
-        templateType: body.templateType
+        templateType: body.templateType,
+        variablesUsed: maxVars
       }), {
         status: 200,
         headers: {
@@ -207,6 +211,11 @@ ${variableList}
 - Each variable MUST be used at least once in the content
 - Use ALL selected variables: ${approvedVariables.join(', ')}
 - NO unauthorized variables allowed`;
+- Use ONLY these variables: ${approvedVariables.join(', ')}
+- MANDATORY: Use ALL ${maxVariables} variables in the content
+- Each variable MUST appear at least once: ${approvedVariables.join(', ')}
+- NO unauthorized variables beyond ${approvedVariables.join(', ')} allowed
+- FAILURE TO USE ALL VARIABLES WILL RESULT IN REJECTION`;
 - Use ONLY these variables: ${approvedVariables.join(', ')}
 - MANDATORY: Use ALL ${maxVariables} variables in the content
 - Each variable MUST appear at least once: ${approvedVariables.join(', ')}
