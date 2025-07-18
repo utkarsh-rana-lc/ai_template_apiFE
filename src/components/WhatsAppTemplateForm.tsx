@@ -214,7 +214,10 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
         carouselCards: formData.templateType === 'Carousel' ? carouselCards : undefined,
         carouselBodyContent: formData.templateType === 'Carousel' ? carouselBodyContent : undefined,
         carouselCardContents: formData.templateType === 'Carousel' ? carouselCardContents : undefined,
-        carouselCardButtons: formData.templateType === 'Carousel' ? carouselCardButtons : undefined
+        carouselCardButtons: formData.templateType === 'Carousel' ? carouselCardButtons : undefined,
+        custom_prompt: customPrompt,
+        addButtons: addButtons,
+        buttonConfig: addButtons ? buttonConfig : null
       };
 
       const response = await fetch(apiEndpoint, {
@@ -343,34 +346,6 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                 </select>
               </div>
 
-              {/* Button 1 Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <span className="text-red-500">•</span> Button 1 Type
-                </label>
-                <select 
-                  value={carouselCardButtons[0]?.type || 'Quick Reply'}
-                  onChange={(e) => handleCarouselButtonChange(0, 'type', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                >
-                  <option value="Quick Reply">Quick reply</option>
-                  <option value="CTA">CTA</option>
-                </select>
-              </div>
-
-              {/* Button 2 Type (Optional) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Button 2 Type (Optional)</label>
-                <select 
-                  value={carouselCardButtons[1]?.type || ''}
-                  onChange={(e) => handleCarouselButtonChange(1, 'type', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                >
-                  <option value="">Select option</option>
-                  <option value="Quick Reply">Quick reply</option>
-                  <option value="CTA">CTA</option>
-                </select>
-              </div>
               {/* Button 1 Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -903,6 +878,9 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
                         )}
                       </div>
                     </div>
+                  ))}
+                </div>
+              </div>
             ) : (
               <div className="bg-white rounded-lg shadow-sm max-w-sm ml-auto overflow-hidden">
                 {/* Media Section for other template types */}
