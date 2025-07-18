@@ -724,15 +724,21 @@ const ProductAwareTemplateGenerator: React.FC<ProductAwareTemplateGeneratorProps
             {/* Custom Instructions */}
             <div>
               <label className="block text-sm font-medium text-gray-900 mb-2">
-                Custom Instructions
+                Custom Instructions (Brand Guidelines)
               </label>
+              <p className="text-sm text-gray-600 mb-3">
+                Add specific brand guidelines that should be prioritized in content generation
+              </p>
               <textarea
                 value={customPrompt}
-                onChange={(e) => setCustomPrompt(e.target.value)}
-                placeholder="e.g., Use brand tone of voice. Emphasize limited-time offers."
-                rows={3}
+                onChange={(e) => handleInputChange('customPrompt', e.target.value)}
+                placeholder="e.g., Always mention our 30-day guarantee. Use friendly, conversational tone. Include sustainability messaging."
+                rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               />
+              <div className="text-xs text-gray-500 mt-1">
+                These instructions will take priority over general guidelines
+              </div>
             </div>
 
             {/* Add Buttons Toggle */}

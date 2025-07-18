@@ -34,6 +34,7 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [customPrompt, setCustomPrompt] = useState('');
 
   // Regular button config (hidden for carousel)
   const [addButtons, setAddButtons] = useState(false);
@@ -675,6 +676,26 @@ const WhatsAppTemplateForm: React.FC<TemplateFormProps> = ({
               </div>
             </div>
           )}
+        </div>
+
+        {/* Custom Instructions */}
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            Custom Instructions (Brand Guidelines)
+          </label>
+          <p className="text-sm text-gray-600 mb-3">
+            Add specific brand guidelines, tone requirements, or messaging instructions that should be prioritized
+          </p>
+          <textarea
+            value={customPrompt}
+            onChange={(e) => setCustomPrompt(e.target.value)}
+            placeholder="e.g., Always mention our 30-day guarantee. Use friendly, conversational tone. Include sustainability messaging. Avoid technical jargon."
+            rows={4}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          />
+          <div className="text-xs text-gray-500 mt-1">
+            These instructions will take priority over general tone and style guidelines
+          </div>
         </div>
 
         {/* Regular Button Configuration - Hide when Carousel is selected */}
