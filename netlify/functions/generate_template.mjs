@@ -210,12 +210,7 @@ ${variableList}
 - Use ONLY these variables: ${approvedVariables.join(', ')}
 - Each variable MUST be used at least once in the content
 - Use ALL selected variables: ${approvedVariables.join(', ')}
-- NO unauthorized variables allowed`;
-- Use ONLY these variables: ${approvedVariables.join(', ')}
-- MANDATORY: Use ALL ${maxVariables} variables in the content
-- Each variable MUST appear at least once: ${approvedVariables.join(', ')}
-- NO unauthorized variables beyond ${approvedVariables.join(', ')} allowed
-- FAILURE TO USE ALL VARIABLES WILL RESULT IN REJECTION`;
+- NO unauthorized variables allowed
 - Use ONLY these variables: ${approvedVariables.join(', ')}
 - MANDATORY: Use ALL ${maxVariables} variables in the content
 - Each variable MUST appear at least once: ${approvedVariables.join(', ')}
@@ -258,7 +253,7 @@ LIMITED TIME OFFER REQUIREMENTS:
   // Get content length guidance based on template type
   const lengthGuidance = getLengthGuidance(templateType);
 
-  return \`Create a Meta-compliant WhatsApp Business template with these EXACT specifications:
+  return `Create a Meta-compliant WhatsApp Business template with these EXACT specifications:
 
 META COMPLIANCE REQUIREMENTS:
 ${categoryRules}
