@@ -249,7 +249,7 @@ LIMITED TIME OFFER REQUIREMENTS:
   // Get content length guidance based on template type
   const lengthGuidance = getLengthGuidance(templateType);
 
-  return `Create a Meta-compliant WhatsApp Business template with these EXACT specifications:
+  return \`Create a Meta-compliant WhatsApp Business template with these EXACT specifications:
 
 META COMPLIANCE REQUIREMENTS:
 ${categoryRules}
